@@ -1,0 +1,68 @@
+{
+  "segments": [
+    {
+      "index": 0,
+      "text": "How would you sort a million names? Comparing everything with everything would take forever. There's a smarter way, and it starts with giving up on the big problem.",
+      "start": 0,
+      "speech_end": 9.264,
+      "end": 9.267
+    },
+    {
+      "index": 1,
+      "text": "The first trick: split the list in half, then split each half again, and keep going until every piece holds just one number. A single number is already sorted.",
+      "start": 10.633,
+      "speech_end": 21.313,
+      "end": 21.333
+    },
+    {
+      "index": 2,
+      "text": "The second trick is merging. If you have two lists that are already sorted, combining them into one sorted list is easy: you only ever compare the two front items.",
+      "start": 22.7,
+      "speech_end": 33.788,
+      "end": 33.8
+    },
+    {
+      "index": 3,
+      "text": "Watch the two pointers. Compare the front of each list, take the smaller one, and move that pointer forward. Repeat until everything has been copied into the result.",
+      "start": 35.167,
+      "speech_end": 45.151,
+      "end": 45.367
+    },
+    {
+      "index": 4,
+      "text": "Six numbers, six steps, and the result is perfectly sorted. Each item is touched just once.",
+      "start": 45.733,
+      "speech_end": 52.693,
+      "end": 52.7
+    },
+    {
+      "index": 5,
+      "text": "Now run it in reverse. Merge the single numbers into sorted pairs, merge pairs into sorted fours, and finally merge the two halves into the full sorted list.",
+      "start": 54.067,
+      "speech_end": 64.459,
+      "end": 64.467
+    },
+    {
+      "index": 6,
+      "text": "Why is this fast? Halving a list can only happen about log n times, and each level of merging touches every item once. So the work grows like n log n, far below n squared.",
+      "start": 65.833,
+      "speech_end": 79.177,
+      "end": 79.2
+    },
+    {
+      "index": 7,
+      "text": "For a million items, that's about twenty million steps instead of a trillion. The curves pull apart as the list grows.",
+      "start": 80.567,
+      "speech_end": 87.911,
+      "end": 87.933
+    },
+    {
+      "index": 8,
+      "text": "So: split until trivial, then merge sorted pieces back together. Hard problems get easy when you cut them small enough. That's how a million names get sorted in moments.",
+      "start": 89.3,
+      "speech_end": 101.564,
+      "end": 101.567
+    }
+  ],
+  "duration": 102.43333333332959
+}

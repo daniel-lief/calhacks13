@@ -1,0 +1,68 @@
+{
+  "segments": [
+    {
+      "index": 0,
+      "text": "You open your map app and ask for the fastest route home. Out of millions of possible roads, how does it find the best one in a blink?",
+      "start": 0,
+      "speech_end": 8.184,
+      "end": 8.2
+    },
+    {
+      "index": 1,
+      "text": "Picture a network. Each circle is a place, and each number on a line is the cost of travelling that road, like minutes of driving.",
+      "start": 9.567,
+      "speech_end": 17.847,
+      "end": 17.867
+    },
+    {
+      "index": 2,
+      "text": "Our goal is to find the cheapest path from A to every other place. The obvious idea is to try every path, but that explodes quickly as maps grow.",
+      "start": 18.233,
+      "speech_end": 28.409,
+      "end": 28.433
+    },
+    {
+      "index": 3,
+      "text": "Dijkstra's trick is to be greedy and patient. Keep a best known distance for every place, starting at zero for A and infinity for everyone else.",
+      "start": 28.8,
+      "speech_end": 40.2,
+      "end": 40.2
+    },
+    {
+      "index": 4,
+      "text": "Always visit the closest place you haven't finished yet. Then look at its roads, and ask whether going through it gives a shorter way to its neighbors.",
+      "start": 40.567,
+      "speech_end": 49.303,
+      "end": 49.333
+    },
+    {
+      "index": 5,
+      "text": "Notice what happens at B. Going straight from A costs four, but going through C costs two plus one, only three. So we update B to three.",
+      "start": 49.7,
+      "speech_end": 59.132,
+      "end": 59.133
+    },
+    {
+      "index": 6,
+      "text": "Let's watch the whole thing run. Each step, the closest unfinished node gets locked in, and its neighbors get their distances improved.",
+      "start": 60.5,
+      "speech_end": 69.02,
+      "end": 69.033
+    },
+    {
+      "index": 7,
+      "text": "The cheapest route to E is A, C, B, D, E, with a total cost of eleven. The direct-looking road from C to E would have cost twelve.",
+      "start": 79.0,
+      "speech_end": 89.536,
+      "end": 89.567
+    },
+    {
+      "index": 8,
+      "text": "So the hook's answer: your map app keeps a growing circle of finished places, always expanding at the cheapest edge. Greedy choices, made in order, are never regretted.",
+      "start": 90.933,
+      "speech_end": 102.669,
+      "end": 102.7
+    }
+  ],
+  "duration": 103.56666666666273
+}

@@ -1,0 +1,63 @@
+{
+  "id": "db99c52b57be",
+  "topic": "Why ice floats",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "Why Ice Floats",
+  "attempts": 2,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.1314,
+  "created_at": 1792875333.0298095,
+  "updated_at": 1792875898.7724617,
+  "finished_at": 1792875898.7724617,
+  "logs": [],
+  "public": true,
+  "sample": true,
+  "tags": [
+    "science",
+    "chemistry",
+    "why ice floats",
+    "water",
+    "ice",
+    "hydrogen bonds",
+    "density",
+    "icebergs",
+    "molecules",
+    "frozen lakes",
+    "states of matter"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "The puzzle"
+    },
+    {
+      "start": 21.1,
+      "title": "Water's bent shape"
+    },
+    {
+      "start": 43.53,
+      "title": "Liquid vs frozen"
+    },
+    {
+      "start": 64.33,
+      "title": "Open lattice density"
+    },
+    {
+      "start": 85.13,
+      "title": "Recap"
+    }
+  ]
+}

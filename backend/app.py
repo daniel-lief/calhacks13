@@ -22,6 +22,20 @@ class CreateJob(BaseModel):
     narration: bool = True
     review: bool = True
     extra: str = Field(default="", max_length=1000)
+    public: bool = True
+
+
+class UpdateJob(BaseModel):
+    public: bool | None = None
+    tags: list[str] | None = Field(default=None, max_length=50)
+
+
+class Like(BaseModel):
+    liked: bool
+
+
+class Save(BaseModel):
+    saved: bool
 
 
 @app.get("/api/health")
@@ -42,13 +56,23 @@ def create_job(body: CreateJob):
     job = jobs.create(topic, JobOptions(
         length=body.length, quality=body.quality, narration=body.narration,
         review=body.review, extra=body.extra.strip(),
-    ))
-    return job.to_dict()
+    ), public=body.public)
+    return jobs.serialize(job)
 
 
 @app.get("/api/jobs")
 def list_jobs():
-    return [j.to_dict(include_logs=False) for j in jobs.list()]
+    return [jobs.serialize(j, include_logs=False) for j in jobs.list()]
+
+
+@app.get("/api/feed")
+def feed():
+    return [jobs.serialize(j, include_logs=False) for j in jobs.feed()]
+
+
+@app.get("/api/saved")
+def saved():
+    return [jobs.serialize(j, include_logs=False) for j in jobs.saved()]
 
 
 @app.get("/api/jobs/{job_id}")
@@ -56,7 +80,7 @@ def get_job(job_id: str):
     job = jobs.get(job_id)
     if not job:
         raise HTTPException(404, "No such job")
-    data = job.to_dict()
+    data = jobs.serialize(job)
     data["queue_position"] = jobs.queue_position(job) if job.status == "queued" else 0
     return data
 
@@ -64,11 +88,41 @@ def get_job(job_id: str):
 @app.delete("/api/jobs/{job_id}", status_code=204)
 def delete_job(job_id: str):
     if not jobs.delete(job_id):
-        raise HTTPException(409, "Job not found or still running")
+        raise HTTPException(409, "Job not found, still running, or a sample")
+
+
+@app.patch("/api/jobs/{job_id}")
+def update_job(job_id: str, body: UpdateJob):
+    job = jobs.update(job_id, public=body.public, tags=body.tags)
+    if not job:
+        raise HTTPException(404, "No such job, or it's a sample")
+    return jobs.serialize(job, include_logs=False)
+
+
+@app.post("/api/jobs/{job_id}/like")
+def like_job(job_id: str, body: Like):
+    if not jobs.like(job_id, body.liked):
+        raise HTTPException(404, "No such job")
+    return jobs.serialize(jobs.get(job_id), include_logs=False)
+
+
+@app.post("/api/jobs/{job_id}/save")
+def save_job(job_id: str, body: Save):
+    if not jobs.save(job_id, body.saved):
+        raise HTTPException(404, "No such post, or it's your own video")
+    return jobs.serialize(jobs.get(job_id), include_logs=False)
+
+
+@app.post("/api/jobs/{job_id}/view", status_code=204)
+def view_job(job_id: str):
+    if not jobs.view(job_id):
+        raise HTTPException(404, "No such job")
 
 
 config.JOBS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory=config.JOBS_DIR), name="media")
+config.SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/samples", StaticFiles(directory=config.SAMPLES_DIR), name="samples")
 app.mount("/static", StaticFiles(directory=config.FRONTEND_DIR), name="static")
 
 

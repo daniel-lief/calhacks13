@@ -1,0 +1,66 @@
+{
+  "id": "05f353ca7953",
+  "topic": "How a pendulum keeps time",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "How a Pendulum Keeps Time",
+  "attempts": 3,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.1601,
+  "created_at": 1792875333.2407467,
+  "updated_at": 1792876107.89125,
+  "finished_at": 1792876107.89125,
+  "logs": [],
+  "public": true,
+  "sample": true,
+  "tags": [
+    "physics",
+    "pendulum",
+    "how clocks work",
+    "timekeeping",
+    "galileo",
+    "pendulum period",
+    "escapement",
+    "clock",
+    "gravity",
+    "harmonic motion"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Intro"
+    },
+    {
+      "start": 9.63,
+      "title": "Galileo's discovery"
+    },
+    {
+      "start": 22.13,
+      "title": "The period formula"
+    },
+    {
+      "start": 57.67,
+      "title": "Losing energy"
+    },
+    {
+      "start": 67.7,
+      "title": "The escapement"
+    },
+    {
+      "start": 91.87,
+      "title": "Recap"
+    }
+  ]
+}

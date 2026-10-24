@@ -81,6 +81,32 @@ def count_voiceovers(code: str) -> int:
     )
 
 
+MAX_TAGS = 15
+MAX_TAG_LENGTH = 24
+
+
+def clean_tags(tags) -> list[str]:
+    """Lowercase, trimmed, de-duplicated, length-limited tags."""
+    out: list[str] = []
+    for tag in tags if isinstance(tags, (list, tuple)) else []:
+        if not isinstance(tag, str):
+            continue
+        tag = " ".join(tag.lower().split()).lstrip("#").strip()[:MAX_TAG_LENGTH].strip()
+        if tag and tag not in out:
+            out.append(tag)
+    return out[:MAX_TAGS]
+
+
+def extract_tags(code: str) -> list[str]:
+    match = re.search(r"^TAGS\s*=\s*(\[.*?\])", code, re.MULTILINE | re.DOTALL)
+    if not match:
+        return []
+    try:
+        return clean_tags(ast.literal_eval(match.group(1)))
+    except (ValueError, SyntaxError):
+        return []
+
+
 def extract_title(code: str) -> str | None:
     match = re.search(r'^TITLE\s*=\s*(["\'])(.+?)\1', code, re.MULTILINE)
     return match.group(2) if match else None

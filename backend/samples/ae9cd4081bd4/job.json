@@ -1,0 +1,68 @@
+{
+  "id": "ae9cd4081bd4",
+  "topic": "Supply and demand",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "Supply and Demand",
+  "attempts": 3,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.2299,
+  "created_at": 1792875333.6664178,
+  "updated_at": 1792876533.1317818,
+  "finished_at": 1792876533.1317818,
+  "logs": [],
+  "public": true,
+  "sample": true,
+  "tags": [
+    "economics",
+    "supply and demand",
+    "microeconomics",
+    "equilibrium",
+    "prices",
+    "markets",
+    "coffee",
+    "surplus",
+    "shortage",
+    "demand curve",
+    "supply curve",
+    "adam smith"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Why coffee costs $3"
+    },
+    {
+      "start": 11.23,
+      "title": "Demand and supply"
+    },
+    {
+      "start": 27.17,
+      "title": "Finding equilibrium"
+    },
+    {
+      "start": 36.47,
+      "title": "Surplus and shortage"
+    },
+    {
+      "start": 54.43,
+      "title": "Shifting curves"
+    },
+    {
+      "start": 77.9,
+      "title": "Price as signal"
+    }
+  ]
+}

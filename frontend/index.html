@@ -4,126 +4,311 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Animai · Animated Explainers</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23101418'/><path d='M4 16c3-9 7-9 12 0s9 9 12 0' stroke='%2358C4DD' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
+  <meta name="description" content="Short animated explainers on anything. Watch what others made, or type a topic and Claude makes one for you.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%231a191c'/><path d='M4 16c3-9 7-9 12 0s9 9 12 0' stroke='%23f0f2f0' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#/">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--panel-2)"/><path d="M4 16c3-9 7-9 12 0s9 9 12 0" stroke="var(--blue)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-      <span>Animai</span>
-    </a>
-    <div id="health" class="health" aria-live="polite"></div>
-  </header>
+<body data-preloading="true">
+  <canvas id="scene" class="particle-scene" aria-hidden="true"></canvas>
+  <div class="preloader" id="preloader" aria-hidden="true"><span class="count t-30" id="preloader-count">0</span></div>
 
-  <main>
-    <div id="banner" class="banner" hidden></div>
-
-    <section id="composer" class="composer">
-      <h1>Learn anything, <span class="accent">visually</span>.</h1>
-      <p class="lede">Any topic, any subject: math, science, code, history. Claude creates a narrated animation with Animai’s soft pastel visuals and renders it into a video.</p>
-
-      <form id="form" autocomplete="off">
-        <div class="prompt-box">
-          <input id="topic" name="topic" type="text" maxlength="300" required
-                 placeholder="e.g. the fast Fourier transform" aria-label="Topic to learn about">
-          <button id="submit" type="submit" class="primary">Generate</button>
-        </div>
-
-        <div class="chips" id="examples" aria-label="Example topics"></div>
-
-        <details class="options">
-          <summary>Options</summary>
-          <div class="options-grid">
-            <fieldset>
-              <legend>Length</legend>
-              <div class="segmented">
-                <label><input type="radio" name="length" value="short"><span>Short · ~1 min</span></label>
-                <label><input type="radio" name="length" value="medium" checked><span>Standard · ~3 min</span></label>
-                <label><input type="radio" name="length" value="long"><span>Deep dive · ~5 min</span></label>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Quality</legend>
-              <div class="segmented">
-                <label><input type="radio" name="quality" value="low"><span>480p · fastest</span></label>
-                <label><input type="radio" name="quality" value="medium" checked><span>720p</span></label>
-                <label><input type="radio" name="quality" value="high"><span>1080p</span></label>
-              </div>
-            </fieldset>
-            <fieldset class="toggles">
-              <legend>Extras</legend>
-              <label class="toggle"><input type="checkbox" name="narration" checked><span>Voice narration</span></label>
-              <label class="toggle"><input type="checkbox" name="review" checked><span>Visual review pass <small>(Claude checks frames, re-renders if needed)</small></span></label>
-            </fieldset>
-            <fieldset class="wide">
-              <legend>Guidance <small>(optional)</small></legend>
-              <textarea name="extra" rows="2" maxlength="1000"
-                        placeholder="Audience, angle, or what to focus on — e.g. “assume I know basic linear algebra; focus on why it's O(n log n)”"></textarea>
-            </fieldset>
-          </div>
-        </details>
-      </form>
+  <!-- Landing: the scroll story ------------------------------------------- -->
+  <main class="content landing" id="landing">
+    <section class="hero" data-shape="mark">
+      <div class="hero-copy">
+        <h1 class="t-30 blur-anim" data-delay="0.2">Animai</h1>
+        <a class="t-30 blur-anim" data-delay="0.6" href="#/feed">Browse the feed</a>
+      </div>
     </section>
 
-    <section id="job" class="job card" hidden>
-      <div class="job-head">
-        <div>
-          <p class="eyebrow" id="job-topic"></p>
-          <h2 id="job-title"></h2>
-        </div>
-        <div class="job-meta"><span id="job-elapsed"></span></div>
+    <section class="statement" data-shape="markRight">
+      <div class="statement-copy">
+        <p class="t-30 split">Short animated explainers on anything. Watch what others made, or type a topic and Claude writes a narrated animation in the style of 3Blue1Brown, then renders it to video.</p>
       </div>
-
-      <ol class="steps" id="steps">
-        <li data-step="writing">Script</li>
-        <li data-step="checking">Test run</li>
-        <li data-step="rendering">Render</li>
-        <li data-step="reviewing">Review</li>
-        <li data-step="done">Done</li>
-      </ol>
-
-      <div class="progress" id="progress-wrap">
-        <div class="bar"><div id="progress-bar"></div></div>
-        <p id="job-stage" class="stage"></p>
-      </div>
-
-      <div id="player" class="player" hidden>
-        <video id="video" controls playsinline preload="metadata"></video>
-        <div class="actions">
-          <a id="download" class="button" download>Download MP4</a>
-          <button id="toggle-code" class="button" type="button">View ManimGL code</button>
-          <button id="new-video" class="button ghost" type="button">Make another</button>
-        </div>
-        <div id="code-panel" class="code-panel" hidden>
-          <div class="code-bar"><span>scene.py</span><button id="copy-code" type="button" class="link">Copy</button></div>
-          <pre><code id="code"></code></pre>
-        </div>
-      </div>
-
-      <div id="failure" class="failure" hidden>
-        <p id="failure-msg"></p>
-        <button id="retry" class="primary" type="button">Try again</button>
-      </div>
-
-      <details class="log" id="log-wrap" open>
-        <summary>Behind the scenes</summary>
-        <ul id="log"></ul>
-      </details>
     </section>
 
-    <section class="library">
-      <div class="library-head">
-        <h2>Your videos</h2>
-      </div>
-      <div id="library" class="grid"></div>
-      <p id="library-empty" class="muted" hidden>Nothing here yet — your generated videos will show up here.</p>
+    <section class="world" data-shape="sphere">
+      <svg class="ring" viewBox="-500 -500 1000 1000" aria-hidden="true">
+        <defs><path id="ring-path" d="M-440,0a440,440 0 1,1 880,0a440,440 0 1,1 -880,0"/></defs>
+        <text class="ring-text"><textPath href="#ring-path" startOffset="25%" text-anchor="middle">Math, physics, chemistry</textPath></text>
+        <text class="ring-text"><textPath href="#ring-path" startOffset="75%" text-anchor="middle">Code, data, history</textPath></text>
+      </svg>
     </section>
+
+    <section class="tree" data-shape="tree">
+      <p class="t-30 tree-label">Algorithms, step by step</p>
+    </section>
+
+    <section class="work">
+      <div class="work-sticky">
+        <p class="t-30 work-line">It doesn’t stop at writing code. Claude test-renders the scene, looks at the frames, and fixes anything that overlaps or runs off screen before you see it.</p>
+      </div>
+      <div class="marker" data-shape="ribbon" data-hold="0.3" style="top: 105svh"></div>
+    </section>
+
+    <section class="playground" id="playground">
+      <div class="stage">
+        <p class="kicker t-16 active-fade" id="kicker">From the feed</p>
+        <div class="track" id="marquee"></div>
+        <p class="closing t-30 active-fade" id="closing">And room for plenty more.</p>
+      </div>
+      <div class="marker" id="marker-flat" data-shape="ribbonFlat"></div>
+      <div class="marker" id="marker-loops" data-shape="ribbonLoops"></div>
+    </section>
+
+    <div class="contacts-wrap">
+      <section class="contacts" id="start" data-shape="frame">
+        <div class="frame-box" id="landing-frame">
+          <p class="t-16 muted caps blur-anim">Start learning</p>
+          <a class="enter t-85" href="#/watch">Start watching</a>
+          <p class="t-20 muted">or <a class="inline-link" href="#/feed">browse the feed</a>, or <a class="inline-link" href="#/create">make your own</a></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <a class="monogram" href="#/" id="monogram">
+          <span class="tooltip t-16">Back to top</span>
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <circle class="mono-circle" cx="16" cy="16" r="14.5"/>
+            <path class="mono-wave" d="M4 16c3-9 7-9 12 0s9 9 12 0"/>
+          </svg>
+          <span class="footer-line t-16 footer-meta">Animai</span>
+        </a>
+        <p class="footer-line t-16 health"></p>
+      </footer>
+    </div>
   </main>
 
+  <!-- App: feed, scroll, create, library ----------------------------------- -->
+  <div class="app content" id="app" hidden>
+    <nav class="sidebar" aria-label="Main">
+      <a class="brand t-20" href="#/">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <circle class="mono-circle" cx="16" cy="16" r="14.5"/>
+          <path class="mono-wave" d="M4 16c3-9 7-9 12 0s9 9 12 0"/>
+        </svg>
+        <span>Animai</span>
+      </a>
+      <div class="nav-group">
+        <p class="t-16 muted caps nav-label">Explore</p>
+        <a class="t-20" data-nav="feed" href="#/feed">Feed</a>
+        <a class="t-20" data-nav="watch" href="#/watch">Scroll</a>
+      </div>
+      <div class="nav-group">
+        <p class="t-16 muted caps nav-label">Create</p>
+        <a class="t-20" data-nav="create" href="#/create">New video</a>
+        <a class="t-20" data-nav="library" href="#/library">Library</a>
+      </div>
+      <p class="t-16 muted caps nav-health health"></p>
+    </nav>
+
+    <!-- Feed -->
+    <section class="screen" id="screen-feed" hidden>
+      <header class="screen-head">
+        <h1 class="t-49">Feed</h1>
+        <p class="t-16 muted caps" id="feed-count"></p>
+      </header>
+      <div class="search" role="search">
+        <label class="visually-hidden" for="search">Search the feed</label>
+        <input id="search" type="search" class="search-input t-30" placeholder="Search by topic, title or tag" autocomplete="off" spellcheck="false">
+        <button id="search-clear" type="button" class="link-button muted t-16 caps" hidden>Clear</button>
+      </div>
+      <div class="tag-row t-16" id="tag-row" aria-label="Popular tags"></div>
+      <div class="grid" id="feed-grid"></div>
+      <p class="empty t-30" id="feed-empty" hidden>Nothing has been posted yet. <a class="inline-link" href="#/create">Make the first video</a>.</p>
+      <p class="empty t-30" id="feed-nomatch" hidden></p>
+    </section>
+
+    <!-- Scroll: vertical, one video at a time -->
+    <section class="screen screen-watch" id="screen-watch" hidden>
+      <div class="reel" id="reel" tabindex="-1" aria-label="Videos. Use the up and down arrow keys or the scroll wheel to move between them."></div>
+      <p class="reel-empty t-30" id="reel-empty" hidden>Nothing to watch yet. <a class="inline-link" href="#/create">Make the first video</a>.</p>
+      <p class="reel-hint t-16 muted caps" id="reel-hint">Scroll or use the arrow keys</p>
+    </section>
+
+    <!-- Watch: one video in 16:9, YouTube style -->
+    <section class="screen screen-video" id="screen-video" hidden>
+      <div class="watch">
+        <div class="watch-main">
+          <video id="watch-video" class="watch-player" playsinline preload="metadata"></video>
+          <h1 class="t-30 watch-title" id="watch-title"></h1>
+          <div class="watch-bar">
+            <p class="t-16 muted caps" id="watch-meta"></p>
+            <div class="watch-actions t-16" id="watch-actions"></div>
+          </div>
+          <div class="watch-details">
+            <div class="tag-list t-16" id="watch-tags"></div>
+            <p class="t-16 muted" id="watch-prompt"></p>
+            <ol class="chapter-list t-16" id="watch-chapters" aria-label="Chapters"></ol>
+            <div class="watch-owner t-16" id="watch-owner" hidden>
+              <button id="watch-public" type="button" class="link-button caps"></button>
+              <button id="watch-edit-tags" type="button" class="link-button caps">Edit tags</button>
+              <button id="watch-toggle-code" type="button" class="link-button caps">View code</button>
+              <a id="watch-download" class="link-button caps" download>Download</a>
+              <button id="watch-delete" type="button" class="link-button muted caps">Delete</button>
+            </div>
+            <form id="watch-tag-form" class="tag-form t-16" hidden>
+              <label class="visually-hidden" for="watch-tag-input">Tags, separated by commas, most relevant first</label>
+              <input id="watch-tag-input" type="text" maxlength="400" autocomplete="off">
+              <button type="submit" class="link-button caps">Save</button>
+              <button id="watch-tag-cancel" type="button" class="link-button muted caps">Cancel</button>
+            </form>
+          </div>
+          <div id="watch-code" class="code-panel" hidden>
+            <div class="code-bar t-16"><span class="muted">scene.py</span><button id="watch-copy-code" type="button" class="link-button">Copy</button></div>
+            <pre><code id="watch-code-text"></code></pre>
+          </div>
+        </div>
+        <aside class="watch-side">
+          <div class="watch-transcript" id="watch-transcript-wrap">
+            <p class="t-16 muted caps">Transcript</p>
+            <ol class="transcript t-16" id="watch-transcript" aria-label="Transcript"></ol>
+          </div>
+          <p class="t-16 muted caps">Up next</p>
+          <div class="up-next" id="up-next"></div>
+        </aside>
+      </div>
+      <p class="empty t-30" id="watch-missing" hidden>This video isn't available. <a class="inline-link" href="#/feed">Back to the feed</a>.</p>
+    </section>
+
+    <!-- Create -->
+    <section class="screen screen-create" id="screen-create" hidden>
+      <div class="frame-box" id="frame-box">
+
+        <form id="form" class="composer" autocomplete="off">
+          <p class="t-16 muted caps">New video</p>
+          <label class="visually-hidden" for="topic">Topic to learn about</label>
+          <input id="topic" name="topic" type="text" maxlength="300" required class="topic t-85"
+                 placeholder="the fast Fourier transform">
+          <p class="t-20 muted" id="examples">or try</p>
+          <div class="composer-actions t-20">
+            <button id="toggle-options" class="link-button muted" type="button" aria-expanded="false" aria-controls="options">Options</button>
+            <button id="submit" class="link-button" type="submit">Generate</button>
+          </div>
+          <div id="options" class="options t-16" hidden>
+            <fieldset>
+              <legend class="muted caps">Length</legend>
+              <label><input type="radio" name="length" value="short"><span>Short, about 1 min</span></label>
+              <label><input type="radio" name="length" value="medium" checked><span>Standard, about 3 min</span></label>
+              <label><input type="radio" name="length" value="long"><span>Deep dive, about 5 min</span></label>
+            </fieldset>
+            <fieldset>
+              <legend class="muted caps">Quality</legend>
+              <label><input type="radio" name="quality" value="low"><span>480p, fastest</span></label>
+              <label><input type="radio" name="quality" value="medium" checked><span>720p</span></label>
+              <label><input type="radio" name="quality" value="high"><span>1080p</span></label>
+            </fieldset>
+            <fieldset>
+              <legend class="muted caps">Extras</legend>
+              <label><input type="checkbox" name="public" checked><span>Post to the feed</span></label>
+              <label><input type="checkbox" name="narration" checked><span>Voice narration</span></label>
+              <label><input type="checkbox" name="review" checked><span>Visual review pass</span></label>
+            </fieldset>
+            <fieldset class="wide">
+              <legend class="muted caps">Guidance</legend>
+              <textarea name="extra" rows="2" maxlength="1000"
+                        placeholder="Audience, angle, or what to focus on. For example: assume I know basic linear algebra; focus on why it's O(n log n)."></textarea>
+            </fieldset>
+          </div>
+          <p id="banner" class="banner t-16" hidden></p>
+        </form>
+
+        <div id="job" class="job" hidden>
+          <div class="job-head">
+            <p class="t-16 muted caps" id="job-topic"></p>
+            <p class="t-16 muted caps" id="job-elapsed"></p>
+          </div>
+          <h2 class="t-49" id="job-title"></h2>
+          <div class="job-tags t-16" id="job-tags">
+            <div class="tag-list" id="job-tag-list"></div>
+            <button id="edit-tags" type="button" class="link-button muted caps">Edit tags</button>
+            <form id="tag-form" class="tag-form" hidden>
+              <label class="visually-hidden" for="tag-input">Tags, separated by commas</label>
+              <input id="tag-input" type="text" maxlength="240" autocomplete="off" placeholder="physics, waves, light">
+              <button type="submit" class="link-button caps">Save</button>
+              <button id="tag-cancel" type="button" class="link-button muted caps">Cancel</button>
+            </form>
+          </div>
+
+          <ol class="steps t-16 caps" id="steps">
+            <li data-step="writing">Script</li>
+            <li data-step="checking">Test run</li>
+            <li data-step="rendering">Render</li>
+            <li data-step="reviewing">Review</li>
+            <li data-step="done">Done</li>
+          </ol>
+
+          <div class="progress" id="progress-wrap">
+            <div class="bar"><div id="progress-bar"></div></div>
+            <p id="job-stage" class="t-20 muted"></p>
+          </div>
+
+          <div id="player" class="player" hidden>
+            <video id="video" playsinline preload="metadata"></video>
+            <div class="actions t-20">
+              <a id="download" class="link-button" download>Download MP4</a>
+              <button id="toggle-public" class="link-button" type="button"></button>
+              <button id="toggle-code" class="link-button" type="button">View ManimGL code</button>
+              <button id="new-video" class="link-button muted" type="button">Make another</button>
+            </div>
+            <div id="code-panel" class="code-panel" hidden>
+              <div class="code-bar t-16"><span class="muted">scene.py</span><button id="copy-code" type="button" class="link-button">Copy</button></div>
+              <pre><code id="code"></code></pre>
+            </div>
+          </div>
+
+          <div id="failure" class="failure" hidden>
+            <p id="failure-msg" class="t-20"></p>
+            <div class="actions t-20">
+              <button id="retry" class="link-button" type="button">Try again</button>
+              <button id="failure-new" class="link-button muted" type="button">Make another</button>
+            </div>
+          </div>
+
+          <details class="log" id="log-wrap">
+            <summary class="t-16 muted caps">Behind the scenes</summary>
+            <ul id="log" class="t-16"></ul>
+          </details>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Library -->
+    <section class="screen" id="screen-library" hidden>
+      <header class="screen-head">
+        <h1 class="t-49">Library</h1>
+        <p class="t-16 muted caps" id="library-count"></p>
+      </header>
+      <div class="library-tabs t-20" id="library-tabs" role="group" aria-label="Show">
+        <button type="button" data-show="">All</button>
+        <button type="button" data-show="created">Created</button>
+        <button type="button" data-show="saved">Saved</button>
+      </div>
+      <div class="search" role="search">
+        <label class="visually-hidden" for="library-search">Search your library</label>
+        <input id="library-search" type="search" class="search-input t-30" placeholder="Search by topic, title or tag" autocomplete="off" spellcheck="false">
+        <button id="library-search-clear" type="button" class="link-button muted t-16 caps" hidden>Clear</button>
+      </div>
+      <div class="tag-row t-16" id="library-tag-row" aria-label="Popular tags"></div>
+      <div class="grid" id="library-grid"></div>
+      <p class="empty t-30" id="library-empty" hidden></p>
+      <p class="empty t-30" id="library-nomatch" hidden></p>
+    </section>
+  </div>
+
+  <div class="cursor" id="cursor" aria-hidden="true"><div class="cursor-head"></div></div>
+
+  <script src="/static/scene.js"></script>
+  <script src="/static/core.js"></script>
+  <script src="/static/player.js"></script>
+  <script src="/static/create.js"></script>
+  <script src="/static/browse.js"></script>
+  <script src="/static/watch.js"></script>
+  <script src="/static/library.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
