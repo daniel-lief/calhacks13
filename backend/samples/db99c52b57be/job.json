@@ -1,0 +1,28 @@
+{
+  "id": "db99c52b57be",
+  "topic": "Why ice floats",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "Why Ice Floats",
+  "attempts": 2,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.1314,
+  "created_at": 1792875333.0298095,
+  "updated_at": 1792875898.7724617,
+  "finished_at": 1792875898.7724617,
+  "logs": [],
+  "public": true,
+  "sample": true
+}

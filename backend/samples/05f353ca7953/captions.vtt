@@ -1,0 +1,81 @@
+WEBVTT
+
+1.1
+00:00:00.000 --> 00:00:05.229
+For hundreds of years, the best clocks in the world were just a weight swinging back and forth.
+
+1.2
+00:00:05.229 --> 00:00:08.256
+Why does a swinging weight make such a good timekeeper?
+
+2.1
+00:00:09.633 --> 00:00:18.059
+The story goes that around fifteen eighty-three, a young Galileo watched a lamp swing in a cathedral, and timed it with his pulse.
+
+2.2
+00:00:18.059 --> 00:00:21.753
+Big swings and small swings seemed to take the same time.
+
+3.1
+00:00:22.133 --> 00:00:25.784
+The time for one full swing is called the period.
+
+3.2
+00:00:25.784 --> 00:00:34.277
+For small swings it depends only on the length L and gravity g: T equals two pi times the square root of L over g.
+
+4.1
+00:00:35.167 --> 00:00:38.228
+Notice what is missing: the size of the swing.
+
+4.2
+00:00:38.228 --> 00:00:42.820
+Start it at ten degrees or twenty, and the period is almost the same.
+
+4.3
+00:00:42.820 --> 00:00:46.879
+That is why it keeps steady time even as it slowly dies down.
+
+5.1
+00:00:47.267 --> 00:00:51.863
+What does matter is length. Quadruple the length and the period doubles.
+
+5.2
+00:00:51.863 --> 00:00:56.267
+So a clockmaker can tune a clock simply by moving the bob up or down.
+
+6.1
+00:00:57.667 --> 00:01:03.621
+But a real pendulum loses energy to air and friction, and each swing gets smaller.
+
+6.2
+00:01:03.621 --> 00:01:06.307
+Left alone, it would eventually stop.
+
+7.1
+00:01:07.700 --> 00:01:09.439
+The fix is the escapement.
+
+7.2
+00:01:09.439 --> 00:01:19.268
+A falling weight or a spring pushes the gears, and the escapement lets them advance one tooth per swing, giving the pendulum a tiny push each time.
+
+8.1
+00:01:20.667 --> 00:01:24.784
+Each tick you hear is a gear tooth being caught and released.
+
+8.2
+00:01:24.784 --> 00:01:29.172
+The pendulum sets the rhythm, and the weight supplies the energy.
+
+8.3
+00:01:29.172 --> 00:01:31.467
+The gears simply count the swings.
+
+9.1
+00:01:31.867 --> 00:01:36.475
+So a pendulum keeps time because its swing depends on length, not on size.
+
+9.2
+00:01:36.475 --> 00:01:41.083
+Add a little push to beat friction, and a swinging weight becomes a clock.

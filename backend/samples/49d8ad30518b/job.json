@@ -1,0 +1,28 @@
+{
+  "id": "49d8ad30518b",
+  "topic": "Dijkstra's shortest path algorithm",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "Dijkstra's Shortest Path",
+  "attempts": 2,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.0996,
+  "created_at": 1792875332.5318391,
+  "updated_at": 1792875503.8187022,
+  "finished_at": 1792875503.8187022,
+  "logs": [],
+  "public": true,
+  "sample": true
+}

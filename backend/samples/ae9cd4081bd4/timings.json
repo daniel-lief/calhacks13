@@ -1,0 +1,75 @@
+{
+  "segments": [
+    {
+      "index": 0,
+      "text": "Why does a cup of coffee cost three dollars, and not thirty cents or three hundred dollars? Nobody in charge picks that number. So where does it come from?",
+      "start": 0,
+      "speech_end": 9.84,
+      "end": 9.867
+    },
+    {
+      "index": 1,
+      "text": "Start with buyers. The lower the price, the more cups people want. That downward sloping blue line is demand.",
+      "start": 11.233,
+      "speech_end": 18.481,
+      "end": 18.5
+    },
+    {
+      "index": 2,
+      "text": "Now sellers. The higher the price, the more coffee they are happy to produce. That upward sloping red line is supply.",
+      "start": 18.867,
+      "speech_end": 26.787,
+      "end": 26.8
+    },
+    {
+      "index": 3,
+      "text": "Where the lines cross, buyers want exactly as much as sellers offer. That price is the equilibrium, and the market naturally settles there.",
+      "start": 27.167,
+      "speech_end": 36.071,
+      "end": 36.1
+    },
+    {
+      "index": 4,
+      "text": "Set the price too high, and sellers have unsold coffee piling up. A surplus. To clear the shelves, they cut prices.",
+      "start": 36.467,
+      "speech_end": 45.299,
+      "end": 45.3
+    },
+    {
+      "index": 5,
+      "text": "Set it too low, and the shop runs out while buyers still queue. A shortage. Sellers notice, and prices creep up.",
+      "start": 45.667,
+      "speech_end": 53.059,
+      "end": 53.067
+    },
+    {
+      "index": 6,
+      "text": "Now a cold snap hits and everyone wants hot coffee. Demand shifts right. Along the supply line, both the price and the quantity rise to a new equilibrium.",
+      "start": 54.433,
+      "speech_end": 65.425,
+      "end": 65.433
+    },
+    {
+      "index": 7,
+      "text": "If instead a frost destroys coffee crops, supply shifts left. Now there is less coffee around, and the price climbs. Shifts in either curve move the market.",
+      "start": 65.8,
+      "speech_end": 76.504,
+      "end": 76.533
+    },
+    {
+      "index": 8,
+      "text": "So the price of coffee is not decided by anyone. Buyers pull it down, sellers push it up, and the price settles where they agree.",
+      "start": 77.9,
+      "speech_end": 85.964,
+      "end": 85.967
+    },
+    {
+      "index": 9,
+      "text": "The aha: a price is a signal, created by millions of people each chasing their own interests.",
+      "start": 86.333,
+      "speech_end": 93.221,
+      "end": 93.233
+    }
+  ],
+  "duration": 93.59999999999712
+}

@@ -1,0 +1,68 @@
+{
+  "segments": [
+    {
+      "index": 0,
+      "text": "Almost every solid sinks in its own liquid. Drop solid wax into melted wax, and it sinks. So why does ice float on water?",
+      "start": 0,
+      "speech_end": 8.952,
+      "end": 8.967
+    },
+    {
+      "index": 1,
+      "text": "Here is the surprise. Liquid water at four degrees Celsius is denser than ice, about one gram per cubic centimeter versus point nine two.",
+      "start": 10.333,
+      "speech_end": 20.725,
+      "end": 20.733
+    },
+    {
+      "index": 2,
+      "text": "The reason lives inside the molecule. Each water molecule has one oxygen and two hydrogens, bent at about one hundred and four degrees.",
+      "start": 21.1,
+      "speech_end": 30.364,
+      "end": 30.367
+    },
+    {
+      "index": 3,
+      "text": "Oxygen pulls electrons toward itself, so it is slightly negative and the hydrogens slightly positive. Neighboring molecules attract through hydrogen bonds.",
+      "start": 31.733,
+      "speech_end": 43.133,
+      "end": 43.167
+    },
+    {
+      "index": 4,
+      "text": "In liquid water, molecules tumble around. Bonds constantly break and reform, so molecules can crowd close together.",
+      "start": 43.533,
+      "speech_end": 52.461,
+      "end": 52.467
+    },
+    {
+      "index": 5,
+      "text": "When water freezes, molecules lock into a hexagonal lattice. Each one bonds to four neighbors at fixed angles, which holds them farther apart.",
+      "start": 52.833,
+      "speech_end": 62.961,
+      "end": 62.967
+    },
+    {
+      "index": 6,
+      "text": "The lattice is full of empty space. Packed this way, the same molecules take up about nine percent more volume, so ice is lighter per unit volume.",
+      "start": 64.333,
+      "speech_end": 74.173,
+      "end": 74.2
+    },
+    {
+      "index": 7,
+      "text": "Lighter per volume means it floats, with about nine tenths of an iceberg below the surface. Notice the ice sits mostly submerged.",
+      "start": 74.567,
+      "speech_end": 83.735,
+      "end": 83.767
+    },
+    {
+      "index": 8,
+      "text": "So ice floats because hydrogen bonds force water into an open lattice when it freezes. That floating layer insulates lakes, letting life survive winter below.",
+      "start": 85.133,
+      "speech_end": 96.317,
+      "end": 96.333
+    }
+  ],
+  "duration": 96.69999999999648
+}

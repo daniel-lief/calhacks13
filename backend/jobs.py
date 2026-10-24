@@ -49,16 +49,18 @@ class Job:
     updated_at: float = field(default_factory=time.time)
     finished_at: float | None = None
     logs: list[dict] = field(default_factory=list)
+    public: bool = False        # shown in the feed once it's done
+    sample: bool = False        # pre-made post from backend/samples (read-only)
 
     @property
     def dir(self) -> Path:
-        return config.JOBS_DIR / self.id
+        return (config.SAMPLES_DIR if self.sample else config.JOBS_DIR) / self.id
 
     def to_dict(self, include_logs: bool = True) -> dict:
         data = asdict(self)
         if not include_logs:
             data.pop("logs")
-        media = f"/media/{self.id}"
+        media = f"/{'samples' if self.sample else 'media'}/{self.id}"
         data["video_url"] = f"{media}/video.mp4?v={int(self.updated_at)}" if self.has_video else None
         data["captions_url"] = f"{media}/captions.vtt?v={int(self.updated_at)}" if self.has_captions else None
         data["thumbnail_url"] = f"{media}/thumbnail.jpg" if self.has_thumbnail else None
@@ -77,22 +79,49 @@ class JobManager:
         self._lock = threading.Lock()
         self._pool = ThreadPoolExecutor(max_workers=config.MAX_CONCURRENT_JOBS,
                                         thread_name_prefix="job")
+        self._stats: dict[str, dict] = {}
         self._load_existing()
+        self._load_samples()
+        self._load_stats()
 
     # --- store ---------------------------------------------------------------
 
+    @staticmethod
+    def _read(path: Path) -> Job | None:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["options"] = JobOptions(**data.get("options", {}))
+            return Job(**data)
+        except Exception:
+            return None
+
     def _load_existing(self):
         for path in config.JOBS_DIR.glob("*/job.json"):
-            try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-                data["options"] = JobOptions(**data.get("options", {}))
-                job = Job(**data)
-            except Exception:
+            job = self._read(path)
+            if not job:
                 continue
             if job.status in ACTIVE_STATUSES:
                 job.status = "failed"
                 job.error = "The server restarted while this video was being made."
             self._jobs[job.id] = job
+
+    def _load_samples(self):
+        for path in config.SAMPLES_DIR.glob("*/job.json"):
+            job = self._read(path)
+            if job and job.status == "done":
+                job.sample = job.public = True
+                self._jobs[job.id] = job
+
+    def _load_stats(self):
+        try:
+            self._stats = json.loads(config.STATS_PATH.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self._stats = {}
+
+    def _save_stats(self):
+        tmp = config.STATS_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(self._stats), encoding="utf-8")
+        tmp.replace(config.STATS_PATH)
 
     def _save(self, job: Job):
         job.updated_at = time.time()
@@ -101,8 +130,8 @@ class JobManager:
         tmp.write_text(json.dumps(asdict(job), indent=2), encoding="utf-8")
         tmp.replace(job.dir / "job.json")
 
-    def create(self, topic: str, options: JobOptions) -> Job:
-        job = Job(id=uuid.uuid4().hex[:12], topic=topic, options=options)
+    def create(self, topic: str, options: JobOptions, public: bool = False) -> Job:
+        job = Job(id=uuid.uuid4().hex[:12], topic=topic, options=options, public=public)
         with self._lock:
             self._jobs[job.id] = job
             self._save(job)
@@ -113,7 +142,48 @@ class JobManager:
         return self._jobs.get(job_id)
 
     def list(self) -> list[Job]:
-        return sorted(self._jobs.values(), key=lambda j: j.created_at, reverse=True)
+        """The user's own videos, newest first (samples aren't theirs)."""
+        return sorted((j for j in self._jobs.values() if not j.sample),
+                      key=lambda j: j.created_at, reverse=True)
+
+    def feed(self) -> list[Job]:
+        """Finished public posts, newest first."""
+        return sorted((j for j in self._jobs.values() if j.public and j.status == "done" and j.has_video),
+                      key=lambda j: j.created_at, reverse=True)
+
+    def serialize(self, job: Job, include_logs: bool = True) -> dict:
+        data = job.to_dict(include_logs=include_logs)
+        stats = self._stats.get(job.id, {})
+        data["likes"] = stats.get("likes", 0)
+        data["views"] = stats.get("views", 0)
+        return data
+
+    def set_public(self, job_id: str, public: bool) -> Job | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job or job.sample:
+                return None
+            job.public = public
+            self._save(job)
+        return job
+
+    def like(self, job_id: str, liked: bool) -> bool:
+        with self._lock:
+            if job_id not in self._jobs:
+                return False
+            stats = self._stats.setdefault(job_id, {})
+            stats["likes"] = max(0, stats.get("likes", 0) + (1 if liked else -1))
+            self._save_stats()
+        return True
+
+    def view(self, job_id: str) -> bool:
+        with self._lock:
+            if job_id not in self._jobs:
+                return False
+            stats = self._stats.setdefault(job_id, {})
+            stats["views"] = stats.get("views", 0) + 1
+            self._save_stats()
+        return True
 
     def queue_position(self, job: Job) -> int:
         queued = sorted((j for j in self._jobs.values() if j.status == "queued"),
@@ -123,9 +193,11 @@ class JobManager:
     def delete(self, job_id: str) -> bool:
         with self._lock:
             job = self._jobs.get(job_id)
-            if not job or job.status in ACTIVE_STATUSES:
+            if not job or job.sample or job.status in ACTIVE_STATUSES:
                 return False
             del self._jobs[job_id]
+            if self._stats.pop(job_id, None) is not None:
+                self._save_stats()
         shutil.rmtree(job.dir, ignore_errors=True)
         return True
 

@@ -1,0 +1,68 @@
+{
+  "segments": [
+    {
+      "index": 0,
+      "text": "For hundreds of years, the best clocks in the world were just a weight swinging back and forth. Why does a swinging weight make such a good timekeeper?",
+      "start": 0,
+      "speech_end": 8.256,
+      "end": 8.267
+    },
+    {
+      "index": 1,
+      "text": "The story goes that around fifteen eighty-three, a young Galileo watched a lamp swing in a cathedral, and timed it with his pulse. Big swings and small swings seemed to take the same time.",
+      "start": 9.633,
+      "speech_end": 21.753,
+      "end": 21.767
+    },
+    {
+      "index": 2,
+      "text": "The time for one full swing is called the period. For small swings it depends only on the length L and gravity g: T equals two pi times the square root of L over g.",
+      "start": 22.133,
+      "speech_end": 34.277,
+      "end": 34.3
+    },
+    {
+      "index": 3,
+      "text": "Notice what is missing: the size of the swing. Start it at ten degrees or twenty, and the period is almost the same. That is why it keeps steady time even as it slowly dies down.",
+      "start": 35.167,
+      "speech_end": 46.879,
+      "end": 46.9
+    },
+    {
+      "index": 4,
+      "text": "What does matter is length. Quadruple the length and the period doubles. So a clockmaker can tune a clock simply by moving the bob up or down.",
+      "start": 47.267,
+      "speech_end": 56.267,
+      "end": 56.3
+    },
+    {
+      "index": 5,
+      "text": "But a real pendulum loses energy to air and friction, and each swing gets smaller. Left alone, it would eventually stop.",
+      "start": 57.667,
+      "speech_end": 66.307,
+      "end": 66.333
+    },
+    {
+      "index": 6,
+      "text": "The fix is the escapement. A falling weight or a spring pushes the gears, and the escapement lets them advance one tooth per swing, giving the pendulum a tiny push each time.",
+      "start": 67.7,
+      "speech_end": 79.268,
+      "end": 79.3
+    },
+    {
+      "index": 7,
+      "text": "Each tick you hear is a gear tooth being caught and released. The pendulum sets the rhythm, and the weight supplies the energy. The gears simply count the swings.",
+      "start": 80.667,
+      "speech_end": 91.467,
+      "end": 91.5
+    },
+    {
+      "index": 8,
+      "text": "So a pendulum keeps time because its swing depends on length, not on size. Add a little push to beat friction, and a swinging weight becomes a clock.",
+      "start": 91.867,
+      "speech_end": 101.083,
+      "end": 101.1
+    }
+  ],
+  "duration": 102.46666666666266
+}

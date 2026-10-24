@@ -1,0 +1,28 @@
+{
+  "id": "95b6c703c568",
+  "topic": "The Silk Road",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "The Silk Road",
+  "attempts": 3,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.1398,
+  "created_at": 1792875333.4574413,
+  "updated_at": 1792876315.2117743,
+  "finished_at": 1792876315.2117743,
+  "logs": [],
+  "public": true,
+  "sample": true
+}

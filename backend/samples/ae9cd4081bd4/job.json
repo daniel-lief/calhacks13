@@ -1,0 +1,28 @@
+{
+  "id": "ae9cd4081bd4",
+  "topic": "Supply and demand",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "Supply and Demand",
+  "attempts": 3,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.2299,
+  "created_at": 1792875333.6664178,
+  "updated_at": 1792876533.1317818,
+  "finished_at": 1792876533.1317818,
+  "logs": [],
+  "public": true,
+  "sample": true
+}

@@ -1,0 +1,77 @@
+WEBVTT
+
+1.1
+00:00:00.000 --> 00:00:03.507
+You open your map app and ask for the fastest route home.
+
+1.2
+00:00:03.507 --> 00:00:08.184
+Out of millions of possible roads, how does it find the best one in a blink?
+
+2.1
+00:00:09.567 --> 00:00:10.722
+Picture a network.
+
+2.2
+00:00:10.722 --> 00:00:17.847
+Each circle is a place, and each number on a line is the cost of travelling that road, like minutes of driving.
+
+3.1
+00:00:18.233 --> 00:00:22.897
+Our goal is to find the cheapest path from A to every other place.
+
+3.2
+00:00:22.897 --> 00:00:28.409
+The obvious idea is to try every path, but that explodes quickly as maps grow.
+
+4.1
+00:00:28.800 --> 00:00:32.387
+Dijkstra's trick is to be greedy and patient.
+
+4.2
+00:00:32.387 --> 00:00:40.200
+Keep a best known distance for every place, starting at zero for A and infinity for everyone else.
+
+5.1
+00:00:40.567 --> 00:00:43.828
+Always visit the closest place you haven't finished yet.
+
+5.2
+00:00:43.828 --> 00:00:49.303
+Then look at its roads, and ask whether going through it gives a shorter way to its neighbors.
+
+6.1
+00:00:49.700 --> 00:00:51.460
+Notice what happens at B.
+
+6.2
+00:00:51.460 --> 00:00:57.443
+Going straight from A costs four, but going through C costs two plus one, only three.
+
+6.3
+00:00:57.443 --> 00:00:59.132
+So we update B to three.
+
+7.1
+00:01:00.500 --> 00:01:02.535
+Let's watch the whole thing run.
+
+7.2
+00:01:02.535 --> 00:01:09.020
+Each step, the closest unfinished node gets locked in, and its neighbors get their distances improved.
+
+8.1
+00:01:19.000 --> 00:01:24.717
+The cheapest route to E is A, C, B, D, E, with a total cost of eleven.
+
+8.2
+00:01:24.717 --> 00:01:29.536
+The direct-looking road from C to E would have cost twelve.
+
+9.1
+00:01:30.933 --> 00:01:39.085
+So the hook's answer: your map app keeps a growing circle of finished places, always expanding at the cheapest edge.
+
+9.2
+00:01:39.085 --> 00:01:42.669
+Greedy choices, made in order, are never regretted.

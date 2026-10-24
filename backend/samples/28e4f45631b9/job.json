@@ -1,0 +1,28 @@
+{
+  "id": "28e4f45631b9",
+  "topic": "How merge sort works",
+  "options": {
+    "length": "short",
+    "quality": "medium",
+    "narration": true,
+    "review": true,
+    "extra": ""
+  },
+  "status": "done",
+  "stage": "Done",
+  "progress": 1.0,
+  "title": "How Merge Sort Works",
+  "attempts": 2,
+  "error": null,
+  "has_video": true,
+  "has_captions": true,
+  "has_thumbnail": true,
+  "model": "claude-sonnet-5-5",
+  "cost_usd": 0.14,
+  "created_at": 1792875332.8199434,
+  "updated_at": 1792875696.8543494,
+  "finished_at": 1792875696.8543494,
+  "logs": [],
+  "public": true,
+  "sample": true
+}
