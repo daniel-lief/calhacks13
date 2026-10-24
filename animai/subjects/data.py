@@ -9,11 +9,13 @@ import numpy as np
 from manimlib import (
     Animation, AnimationGroup, AnnularSector, Axes, Dot, FadeIn, GrowFromEdge, LaggedStart,
     Line, Mobject, Rectangle, ShowCreation, Succession, Transform, UpdateFromAlphaFunc,
-    VGroup, VMobject, VectorizedPoint, Write, UP, DOWN, LEFT, RIGHT, DR, ORIGIN, TAU, PI,
+    RoundedRectangle, VGroup, VMobject, VectorizedPoint, Write, UP, DOWN, LEFT, RIGHT, DR, ORIGIN,
+    TAU, PI,
 )
 
 from animai.core.media import Label
 from animai.core.scaling import ScaleTracker
+from animai.core.style import rounded_bar
 from animai.core.theme import get_theme, palette_color
 
 __all__ = ["BarPlot", "LinePlot", "PieChart", "format_number"]
@@ -67,14 +69,15 @@ class BarPlot(VGroup):
         self.tracker = ScaleTracker()  # Design space: baseline starts at the origin
 
         self.baseline = (Line(ORIGIN, UP * height) if horizontal else Line(ORIGIN, RIGHT * width))
-        self.baseline.set_stroke(theme.muted, 2)
+        self.baseline.set_stroke(theme.baseline if theme.name == "bubble" else theme.muted, 3)
+        self.grid = self._grid()
         self.bars = VGroup(*(self._bar(i, v, i) for i, v in enumerate(self.values)))
         self.category_labels = VGroup(*(self._category_label(i, i) for i in range(n)))
         self.value_labels = VGroup(*(self._value_label(i, v, i) for i, v in enumerate(self.values)))
         if not show_values:
             self.value_labels.set_opacity(0)
-        super().__init__(self.baseline, self.bars, self.category_labels, self.value_labels,
-                         *self.tracker.mobjects, **kwargs)
+        super().__init__(self.grid, self.baseline, self.bars, self.category_labels,
+                         self.value_labels, *self.tracker.mobjects, **kwargs)
         self.center()
 
     # Bars and labels are built in design space and mapped through the tracker, so
@@ -91,15 +94,37 @@ class BarPlot(VGroup):
             return self._origin() + UP * (self.height - (slot + 0.5) * self.slot)
         return self._origin() + RIGHT * (slot + 0.5) * self.slot
 
+    def _grid(self):
+        """Faint gridlines with value ticks, in design space."""
+        theme = get_theme()
+        grid = VGroup()
+        step = _nice_step(self.max_value, 5)
+        span = self.width if self.horizontal else self.height
+        for v in np.arange(step, self.max_value + 1e-9, step):
+            d = v / self.max_value * span
+            if self.horizontal:
+                line = Line(RIGHT * d, RIGHT * d + UP * self.height)
+                tick = Label(format_number(v), size="tiny", color=theme.muted).next_to(line, DOWN, buff=0.12)
+            else:
+                line = Line(UP * d, UP * d + RIGHT * self.width)
+                tick = Label(format_number(v), size="tiny", color=theme.muted).next_to(line, LEFT, buff=0.15)
+            line.set_stroke(theme.outline, 1.5, opacity=0.7)
+            grid.add(VGroup(line, tick))
+        return self.tracker.adopt(grid)
+
     def _bar(self, i, v, slot):
         length = self._length(v)
+        r = min(0.13 if get_theme().name == "bubble" else 0.09, self.bar_thickness / 2, length / 2)
         if self.horizontal:
-            bar = Rectangle(width=length, height=self.bar_thickness)
+            bar = (rounded_bar(self.bar_thickness, length, r).rotate(-PI / 2)
+                   if get_theme().name == "bubble" else
+                   RoundedRectangle(width=length, height=self.bar_thickness, corner_radius=r))
             bar.move_to(self._slot_center(slot) + RIGHT * length / 2)
         else:
-            bar = Rectangle(width=self.bar_thickness, height=length)
+            bar = (rounded_bar(self.bar_thickness, length, r) if get_theme().name == "bubble" else
+                   RoundedRectangle(width=self.bar_thickness, height=length, corner_radius=r))
             bar.move_to(self._slot_center(slot) + UP * length / 2)
-        bar.set_fill(self.colors[i], 0.85).set_stroke(self.colors[i], 0)
+        bar.set_fill(self.colors[i], 1 if get_theme().name == "bubble" else 0.92).set_stroke(self.colors[i], 0)
         return self.tracker.adopt(bar)
 
     def _category_label(self, i, slot):
@@ -112,7 +137,7 @@ class BarPlot(VGroup):
         return self.tracker.adopt(label)
 
     def _value_label(self, i, v, slot):
-        label = Label(format_number(v, self.unit), size=self.size, color=get_theme().text)
+        label = Label(format_number(v, self.unit), size=self.size, color=get_theme().text, bold=True)
         end = self._slot_center(slot) + (RIGHT if self.horizontal else UP) * self._length(v)
         label.next_to(end, RIGHT if self.horizontal else UP, buff=0.12)
         return self.tracker.adopt(label)
@@ -120,7 +145,7 @@ class BarPlot(VGroup):
     def grow(self, lag_ratio: float = 0.12, **kwargs) -> Animation:
         edge = LEFT if self.horizontal else DOWN
         return AnimationGroup(
-            ShowCreation(self.baseline), FadeIn(self.category_labels),
+            FadeIn(self.grid), ShowCreation(self.baseline), FadeIn(self.category_labels),
             LaggedStart(*(GrowFromEdge(b, edge) for b in self.bars), lag_ratio=lag_ratio),
             LaggedStart(*(FadeIn(v) for v in self.value_labels), lag_ratio=lag_ratio),
             **kwargs,
@@ -129,13 +154,14 @@ class BarPlot(VGroup):
     def animate_values(self, new_values, sort: bool = False, **kwargs) -> Animation:
         """Morph bars and labels to `new_values` (same order as originally given)."""
         new_values = [float(v) for v in new_values]
+        anims = []
         if self.fixed_max is None or max(new_values) > self.fixed_max:
             self.max_value = max(max(new_values), 1e-9) * 1.1  # Rescale like a bar-chart race
+            anims.append(Transform(self.grid, self._grid()))
         order = list(range(len(new_values)))
         if sort:
             order = sorted(order, key=lambda i: -new_values[i])
         slot_of = {i: s for s, i in enumerate(order)}
-        anims = []
         for i, v in enumerate(new_values):
             s = slot_of[i]
             anims.append(Transform(self.bars[i], self._bar(i, v, s)))
@@ -196,12 +222,16 @@ class LinePlot(VGroup):
             t = Label(_fmt_tick(x), size="tiny", color=theme.muted)
             t.next_to(self.c2p(x, y_lo), DOWN, buff=0.15)
             ticks.add(t)
+        self.grid = VGroup()
         for y in np.arange(y_lo, y_hi + 1e-9, y_step):
             t = Label(format_number(y), size="tiny", color=theme.muted)
             t.next_to(self.c2p(self.x0, y), LEFT, buff=0.15)
             ticks.add(t)
+            if y > y_lo:
+                self.grid.add(Line(self.c2p(self.x0, y), self.c2p(xs.max(), y),
+                                   stroke_color=theme.outline, stroke_width=1.5, stroke_opacity=0.7))
         self.tick_labels = ticks
-        parts = [self.axes, ticks]
+        parts = [self.grid, self.axes, ticks]
         if x_label:
             self.x_label = Label(x_label, size=size, color=theme.muted)
             self.x_label.next_to(ticks, DOWN, buff=0.25).match_x(self.axes.x_axis)
@@ -215,7 +245,7 @@ class LinePlot(VGroup):
         for i, (name, ys) in enumerate(series.items()):
             color = colors[i] if colors else palette_color(i)
             pts = [self.c2p(x, y) for x, y in zip(xs, ys)]
-            line = VMobject(stroke_color=color, stroke_width=4)
+            line = VMobject(stroke_color=color, stroke_width=5.5)
             if smooth:
                 line.set_points_smoothly(pts)
             else:
@@ -223,6 +253,13 @@ class LinePlot(VGroup):
             self.lines[name] = line
             self._data[name] = (xs, np.array(ys, dtype=float))
         parts += list(self.lines.values())
+        self.end_markers = VGroup()
+        for name, line in self.lines.items():
+            color = line.get_stroke_color()
+            marker = VGroup(Dot(line.get_end(), radius=0.13, fill_color=color, fill_opacity=0.3),
+                            Dot(line.get_end(), radius=0.07, fill_color=color))
+            self.end_markers.add(marker)
+        parts.append(self.end_markers)
         self.legend = VGroup()
         if legend and any(name for name in self.lines):
             for name, line in self.lines.items():
@@ -242,7 +279,7 @@ class LinePlot(VGroup):
         return self.c2p(xs[i], ys[i])
 
     def draw(self, run_time: float = 3.0, **kwargs) -> Animation:
-        intro = [ShowCreation(self.axes), FadeIn(self.tick_labels)]
+        intro = [ShowCreation(self.axes), FadeIn(self.tick_labels), FadeIn(self.grid)]
         for attr in ("x_label", "y_label"):
             if hasattr(self, attr):
                 intro.append(FadeIn(getattr(self, attr)))
@@ -250,6 +287,7 @@ class LinePlot(VGroup):
             AnimationGroup(*intro, run_time=1.2),
             AnimationGroup(*(ShowCreation(l, rate_func=lambda t: t) for l in self.lines.values()),
                            FadeIn(self.legend), run_time=run_time),
+            FadeIn(self.end_markers, scale=0.5, run_time=0.4),
             **kwargs,
         )
 
@@ -311,8 +349,9 @@ class PieChart(VGroup):
         s = self.tracker.scale()
         return AnnularSector(angle=angle, start_angle=start, inner_radius=self.inner * s,
                              outer_radius=self.radius * s, arc_center=self.tracker.origin(),
-                             fill_color=self.colors[i], fill_opacity=0.9, stroke_width=2,
-                             stroke_color=get_theme().background)
+                             fill_color=self.colors[i], fill_opacity=1 if get_theme().name == "bubble" else 0.9,
+                             stroke_width=2, stroke_color=get_theme().surface if get_theme().name == "bubble"
+                             else get_theme().background)
 
     def build(self, run_time: float = 2.0, **kwargs) -> Animation:
         def update(group, alpha):

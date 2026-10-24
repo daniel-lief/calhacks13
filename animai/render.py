@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from animai import tools
+from animai import fonts, tools
 from animai.themes import THEMES
 
 ROOT = Path(__file__).resolve().parent.parent  # Folder holding animai/ and manimlib/
@@ -26,13 +26,13 @@ CACHE_DIR = Path(os.getenv("ANIMAI_CACHE", Path.home() / ".animai"))
 
 def detect_theme(scene_path: Path) -> str:
     match = THEME_RE.search(scene_path.read_text(encoding="utf-8"))
-    return match.group(1) if match and match.group(1) in THEMES else "classic"
+    return match.group(1) if match and match.group(1) in THEMES else "bubble"
 
 
 def write_engine_config(path: Path, theme_name: str) -> Path:
     """ManimGL reads default colors and fonts at import time, so they go in its config file."""
     t = THEMES[theme_name]
-    light = theme_name == "paper"
+    light = t.light
     config = {
         "directories": {"latex_cache": str(CACHE_DIR / "latex")},
         "camera": {"background_color": t.background},
@@ -40,7 +40,7 @@ def write_engine_config(path: Path, theme_name: str) -> Path:
         "vmobject": {"default_stroke_color": t.text if light else "#DDDDDD",
                      "default_fill_color": t.muted},
         "file_writer": {"ffmpeg_bin": tools.ffmpeg_bin()},
-        "text": {"font": t.font, "alignment": "CENTER"},
+        "text": {"font": t.font, "alignment": "CENTER", "weight": t.text_weight},
     }
     # JSON is valid YAML, which spares a dependency on a YAML writer
     path.write_text(json.dumps(config, indent=2), encoding="utf-8")
@@ -53,6 +53,7 @@ def render_command(scene_path: Path, scene_name: str, out_dir: Path, *, quality:
     """The command and environment that render `scene_name` from `scene_path` into `out_dir`."""
     scene_path, out_dir = scene_path.resolve(), out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
+    fonts.ensure_installed()
     theme = theme or detect_theme(scene_path)
     cfg = write_engine_config(out_dir / "engine_config.yml", theme)
 

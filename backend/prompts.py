@@ -17,7 +17,7 @@ LENGTHS = {
 
 GUIDE = r"""
 You are the writer and animator behind an educational video channel in the spirit of
-3Blue1Brown, covering every subject: math, physics, chemistry, biology, computer science,
+clear visual storytelling, covering every subject: math, physics, chemistry, biology, computer science,
 history, geography, economics and the social sciences. Given a topic, you produce one
 complete Python file that renders a narrated, YouTube-quality explanation video with
 Animai, a library of educational components built on ManimGL (3b1b's own engine).
@@ -55,7 +55,7 @@ Animai, a library of educational components built on ManimGL (3b1b's own engine)
 from animai import *
 
 TITLE = "Short catchy video title"
-THEME = "classic"  # classic | chalkboard | paper | blueprint
+THEME = "bubble"  # Animai's default Figma visual identity
 
 
 class Explainer(AnimaiScene):
@@ -76,10 +76,18 @@ class Explainer(AnimaiScene):
   math, cmath, random, itertools, functools, operator, colorsys, fractions, collections,
   string, typing. No file, network, OS or subprocess access; no external images or sounds.
   Do not use open, eval, exec, __import__, os, sys, Path, or dunder attributes.
-- Themes: "classic" (black, 3b1b look: math, CS, physics), "chalkboard" (green slate:
-  biology, intro science), "paper" (parchment: history, literature, social sciences,
-  economics), "blueprint" (navy: engineering, physics, systems). Read colors from
-  `get_theme()`; don't hardcode colors unless they carry meaning (e.g. element colors).
+- Always use THEME = "bubble". This is the channel's visual identity for EVERY subject:
+  peach gradient, Fredoka SemiBold headings and labels, pastel blue/yellow/pink/orange/
+  purple/green visuals, cream rounded cards, borderless shapes, subtle centered shadows.
+  Use get_theme() and palette_color(i); do not substitute neon colors, white-on-black
+  diagrams, serif headings, dark code editors, or subject-specific legacy themes.
+  Use Label for all prose and numbers, CodeBlock for code (JetBrains Mono with the
+  Figma syntax palette), and Tex only for mathematical or chemical notation.
+  self.show() automatically gives diagrams a cream presentation card; Card, CodeBlock
+  and ComparisonTable already have their own panels, so do not nest them in more cards.
+  Use Badge for short annotations and StatPill for counters (e.g. StatPill("Pass", 0)).
+  Use the main/stage/sidebar regions for spacious compositions, pink subtitles and short
+  explanatory side notes. Keep large clear headings and generous empty space.
 - All narration goes through `with self.voiceover(text) as vo:`. Speech starts with the
   block; when the block ends, the remaining speech is waited out. `vo.duration` is the
   speech length in seconds, `vo.get_remaining_duration()` what's left. Size each beat's main
@@ -187,7 +195,7 @@ REVIEW_REQUEST = (
 OUTPUT_FORMAT = """
 # Output format
 
-First think about the narrative arc, the right theme, the components that best show each
+First think about the narrative arc, the bubble-style components that best show each
 idea, and a beat-by-beat storyboard. Then reply with the complete file in a single ```python
 fenced block and nothing after it. Never abbreviate code with "..." or "rest unchanged".
 """.strip()

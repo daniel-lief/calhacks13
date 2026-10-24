@@ -147,8 +147,8 @@ class WorldMap(VGroup):
         self._cx, self._cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
         self._k = min(width / (max(xs) - min(xs)), height / (max(ys) - min(ys)))
         self.tracker = ScaleTracker()
-        self.fill_color = fill_color or theme.surface
-        self.border_color = border_color or theme.outline
+        self.fill_color = fill_color or theme.land
+        self.border_color = border_color or theme.land_border
 
         self.countries: dict[str, VGroup] = {}
         margin = 2
@@ -242,9 +242,9 @@ class WorldMap(VGroup):
                   stroke_width=1.5)
         group = VGroup(dot)
         if label:
-            tag = Label(label, size=size, color=c, bold=True)
+            tag = Label(label, size=size, color=theme.text if theme.name == "bubble" else c, bold=True)
             tag.next_to(dot, direction, buff=0.08)
-            tag.set_backstroke(theme.background, 4)
+            tag.set_backstroke(theme.surface if theme.name == "bubble" else theme.background, 4)
             self._place_label(tag)
             group.add(tag)
         self.overlay.add(group)
@@ -386,7 +386,8 @@ class Timeline(VGroup):
         dot = Dot(base, radius=0.09 * s, fill_color=c)
         stem = Line(base, base + d * stem_len * s, stroke_color=c, stroke_width=2)
         tag = VGroup(Label(label, size="small", color=theme.text, max_width=3.2),
-                     Label(format_year(year), size="tiny", color=c, bold=True)).arrange(DOWN, buff=0.06)
+                     Label(format_year(year), size="tiny", color=theme.muted if theme.name == "bubble" else c,
+                           bold=True)).arrange(DOWN, buff=0.06)
         tag.scale(s).next_to(stem.get_end(), d, buff=0.06)
         others = [e[2] for e in self.events]
         resolve_overlaps(tag, fixed=tuple(others) + (self.axis,), buff=0.12)
@@ -403,9 +404,11 @@ class Timeline(VGroup):
         a, b = self.point(start), self.point(end)
         lane = DOWN * 0.85 * s  # Below the tick labels
         band = RoundedRectangle(width=max(b[0] - a[0], 0.05), height=0.3 * s, corner_radius=0.08 * s,
-                                fill_color=c, fill_opacity=0.35, stroke_color=c, stroke_width=1.5)
+                                fill_color=c, fill_opacity=1 if get_theme().name == "bubble" else 0.35,
+                                stroke_color=c, stroke_width=0 if get_theme().name == "bubble" else 1.5)
         band.move_to((a + b) / 2 + lane)
-        tag = Label(label, size="tiny", color=c, bold=True).scale(s)
+        tag = Label(label, size="tiny", color=get_theme().text if get_theme().name == "bubble" else c,
+                    bold=True).scale(s)
         if tag.get_width() > band.get_width() * 0.95:
             tag.next_to(band, DOWN, buff=0.1 * s)
             resolve_overlaps(tag, fixed=tuple(e[1] for e in self.eras if len(e) > 1), buff=0.1)

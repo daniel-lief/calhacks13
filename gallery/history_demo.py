@@ -1,6 +1,6 @@
 from animai import *
 
-THEME = "paper"
+THEME = "bubble"
 
 
 class HistoryDemo(AnimaiScene):

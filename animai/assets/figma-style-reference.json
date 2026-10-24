@@ -1,0 +1,1466 @@
+{
+  "source": "https://www.figma.com/design/AU8827Et75ljo5DkLBg1PK/animai?node-id=1-38",
+  "frame": "THE IMAGE",
+  "width": 1576,
+  "height": 982,
+  "notes": "Raw Figma sRGB floats are preserved here. Theme hex values are their nearest 8-bit representations. Font sizes/geometry are reference pixels, adapted proportionally for video scenes. Shadow blur is approximated with vector feather layers by the renderer.",
+  "nodes": [
+    {
+      "id": "1:38",
+      "name": "THE IMAGE",
+      "fills": [],
+      "radii": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:2",
+      "name": "Rectangle 1",
+      "fills": [
+        {
+          "type": "GRADIENT_LINEAR",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "gradientStops": [
+            {
+              "color": {
+                "r": 0.9607843160629272,
+                "g": 0.8509804010391235,
+                "b": 0.7843137383460999,
+                "a": 1
+              },
+              "position": 0,
+              "boundVariables": {}
+            },
+            {
+              "color": {
+                "r": 0.9960784316062927,
+                "g": 0.9176470637321472,
+                "b": 0.8784313797950745,
+                "a": 1
+              },
+              "position": 1,
+              "boundVariables": {}
+            }
+          ],
+          "gradientTransform": [
+            [
+              6.123234262925839e-17,
+              1,
+              0
+            ],
+            [
+              -1,
+              6.123234262925839e-17,
+              1
+            ]
+          ]
+        }
+      ],
+      "radii": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:6",
+      "name": "Bubble Sort",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3450980484485626,
+            "g": 0.24705882370471954,
+            "b": 0.2549019753932953
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 96,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.3450980484485626,
+                "g": 0.24705882370471954,
+                "b": 0.2549019753932953
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:7",
+      "name": "the tallest bubbles to the end",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9372549057006836,
+            "g": 0.4901960790157318,
+            "b": 0.6000000238418579
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 40,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9372549057006836,
+                "g": 0.4901960790157318,
+                "b": 0.6000000238418579
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5:5",
+      "name": "Ellipse 1",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9098039269447327,
+            "g": 0.929411768913269,
+            "b": 0.800000011920929
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:6",
+      "name": "Ellipse 2",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "6:21",
+      "name": "Ellipse 9",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9098039269447327,
+            "g": 0.929411768913269,
+            "b": 0.800000011920929
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:16",
+      "name": "Ellipse 7",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:12",
+      "name": "Ellipse 5",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:10",
+      "name": "Ellipse 4",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9098039269447327,
+            "g": 0.929411768913269,
+            "b": 0.800000011920929
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "6:23",
+      "name": "Ellipse 10",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9921568632125854,
+            "g": 0.8745098114013672,
+            "b": 0.6705882549285889
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:8",
+      "name": "Ellipse 3",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:18",
+      "name": "Ellipse 8",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9882352948188782,
+            "g": 0.8666666746139526,
+            "b": 0.658823549747467
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "5:14",
+      "name": "Ellipse 6",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "id": "1:8",
+      "name": "Rectangle 2",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9843137264251709,
+            "g": 0.9607843160629272,
+            "b": 0.9490196108818054
+          },
+          "boundVariables": {}
+        }
+      ],
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 7.900000095367432,
+          "boundVariables": {},
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.07000000029802322
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "radii": [
+        25,
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "id": "1:9",
+      "name": "Rectangle 3",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9743590950965881,
+            "g": 0.8837934732437134,
+            "b": 0.897378146648407
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        25,
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "id": "1:10",
+      "name": "Pass 0",
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.615686297416687,
+                "g": 0.501960813999176,
+                "b": 0.5176470875740051
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9372549057006836,
+                "g": 0.4901960790157318,
+                "b": 0.6000000238418579
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:11",
+      "name": "Rectangle 4",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9743590950965881,
+            "g": 0.8837934732437134,
+            "b": 0.897378146648407
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        25,
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "id": "1:12",
+      "name": "Compares 0",
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.615686297416687,
+                "g": 0.501960813999176,
+                "b": 0.5176470875740051
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9372549057006836,
+                "g": 0.4901960790157318,
+                "b": 0.6000000238418579
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:14",
+      "name": "Rectangle 5",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9743590950965881,
+            "g": 0.8837934732437134,
+            "b": 0.897378146648407
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        25,
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "id": "1:15",
+      "name": "Swaps 0",
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.615686297416687,
+                "g": 0.501960813999176,
+                "b": 0.5176470875740051
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9372549057006836,
+                "g": 0.4901960790157318,
+                "b": 0.6000000238418579
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:18",
+      "name": "Rectangle 7",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.8509804010391235,
+            "g": 0.8509804010391235,
+            "b": 0.8509804010391235
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:17",
+      "name": "Rectangle 6",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9262821674346924,
+            "g": 0.8233619332313538,
+            "b": 0.5343935489654541
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:19",
+      "name": "3",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:23",
+      "name": "Rectangle 9",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.6493052840232849,
+            "g": 0.7789350152015686,
+            "b": 0.9166667461395264
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:24",
+      "name": "5",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:20",
+      "name": "Rectangle 8",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.942307710647583,
+            "g": 0.7006901502609253,
+            "b": 0.7363386154174805
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:21",
+      "name": "1",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:26",
+      "name": "Rectangle 10",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9455128908157349,
+            "g": 0.7619996666908264,
+            "b": 0.6151891350746155
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:27",
+      "name": "2",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:29",
+      "name": "Rectangle 11",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.7804755568504333,
+            "g": 0.7120106816291809,
+            "b": 0.9294872283935547
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:30",
+      "name": "6",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:32",
+      "name": "Rectangle 12",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.6669643521308899,
+            "g": 0.8493590950965881,
+            "b": 0.6903482675552368
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "1:33",
+      "name": "4",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9391025900840759,
+            "g": 0.928066074848175,
+            "b": 0.9059930443763733
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9391025900840759,
+                "g": 0.928066074848175,
+                "b": 0.9059930443763733
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:35",
+      "name": "for i in range(n): swapped = False for j in range(n-1-i): if a[j] > a[j+1]: a[j], a[j+1] = a[j+1], a[j] swapped = True if not swapped: break  ",
+      "text": [
+        {
+          "font": {
+            "family": "JetBrains Mono",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400
+            }
+          },
+          "size": 20,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.8942307829856873,
+                "g": 0.36686354875564575,
+                "b": 0.4963923692703247
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "JetBrains Mono",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400
+            }
+          },
+          "size": 20,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "JetBrains Mono",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400
+            }
+          },
+          "size": 20,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.19210189580917358,
+                "g": 0.5263122320175171,
+                "b": 0.8814103007316589
+              },
+              "boundVariables": {}
+            }
+          ]
+        },
+        {
+          "font": {
+            "family": "JetBrains Mono",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400
+            }
+          },
+          "size": 20,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.7467949390411377,
+                "g": 0.601584792137146,
+                "b": 0.19387945532798767
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:36",
+      "name": "Rectangle 13",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9843137264251709,
+            "g": 0.9607843160629272,
+            "b": 0.9490196108818054
+          },
+          "boundVariables": {}
+        }
+      ],
+      "effects": [
+        {
+          "type": "DROP_SHADOW",
+          "visible": true,
+          "radius": 7.900000095367432,
+          "boundVariables": {},
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 0.07000000029802322
+          },
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "spread": 0,
+          "blendMode": "NORMAL",
+          "showShadowBehindNode": false
+        }
+      ],
+      "radii": [
+        13,
+        13,
+        13,
+        13
+      ]
+    },
+    {
+      "id": "1:37",
+      "name": "Blah blah blah text",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.9372549057006836,
+            "g": 0.4901960790157318,
+            "b": 0.6000000238418579
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 0.9372549057006836,
+                "g": 0.4901960790157318,
+                "b": 0.6000000238418579
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1:42",
+      "name": "Rectangle 14",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 0.5882353186607361,
+            "b": 0.30980393290519714
+          },
+          "boundVariables": {}
+        }
+      ],
+      "radii": [
+        10,
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "id": "1:41",
+      "name": "✦",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ],
+      "text": [
+        {
+          "font": {
+            "family": "Fredoka",
+            "style": "SemiBold",
+            "variationSettings": {
+              "wght": 600,
+              "wdth": 100
+            }
+          },
+          "size": 24,
+          "lineHeight": {
+            "unit": "AUTO"
+          },
+          "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+          },
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

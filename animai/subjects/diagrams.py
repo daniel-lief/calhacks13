@@ -16,6 +16,7 @@ from manimlib import (
 from animai.core.graphs import layered_positions, tree_positions
 from animai.core.media import Label
 from animai.core.scaling import ScaleTracker
+from animai.core.style import Panel, soft_shadow
 from animai.core.theme import get_theme, palette_color
 
 __all__ = [
@@ -26,59 +27,71 @@ __all__ = [
 
 class Node(VGroup):
     """
-    A shape with a centered text label. shape: "rounded" (default), "box", "circle",
-    "pill", "diamond". `node.shape` and `node.label` are the parts.
-    `node.highlight()` returns an animation that tints it with the accent color.
+    A raised shape with a centered text label. shape: "rounded" (default), "box", "circle",
+    "pill", "diamond". `node.shape` (the bordered outline) and `node.label` are the parts.
+    `node.highlight()` returns an animation that lights it up in the accent color.
 
     Example: Node("Photosynthesis", color=get_theme().positive)
     """
 
     def __init__(self, text: str, shape: str = "rounded", color=None, size="label",
                  width: float | None = None, height: float | None = None,
-                 fill_opacity: float = 0.18, max_text_width: float = 3.6, **kwargs):
+                 fill_opacity: float = 0.2, max_text_width: float = 3.6, shadow: bool = True,
+                 **kwargs):
         theme = get_theme()
         self.color = color or theme.primary
-        self.label = Label(text, size=size, max_width=max_text_width)
-        w = width or max(self.label.get_width() + 0.6, 1.2)
-        h = height or max(self.label.get_height() + 0.45, 0.8)
-        style = dict(fill_color=self.color, fill_opacity=fill_opacity,
-                     stroke_color=self.color, stroke_width=3)
+        self.fill_opacity = 1 if theme.name == "bubble" else fill_opacity
+        self.label = Label(text, size=size, max_width=max_text_width, bold=True)
+        w = width or max(self.label.get_width() + 0.7, 1.3)
+        h = height or max(self.label.get_height() + 0.55, 0.85)
+        style = dict(fill_color=theme.surface, fill_opacity=1, stroke_color=self.color,
+                     stroke_width=0 if theme.name == "bubble" else 3)
         if shape == "circle":
             self.shape = Circle(radius=max(w, h) / 2, **style)
         elif shape == "diamond":
             w, h = w * 1.35, h * 1.5
             self.shape = Polygon(UP * h / 2, RIGHT * w / 2, DOWN * h / 2, LEFT * w / 2, **style)
         elif shape == "box":
-            self.shape = RoundedRectangle(width=w, height=h, corner_radius=0.04, **style)
+            self.shape = RoundedRectangle(width=w, height=h, corner_radius=0.06, **style)
         elif shape == "pill":
             self.shape = RoundedRectangle(width=w + 0.3, height=h, corner_radius=h / 2, **style)
         else:
-            self.shape = RoundedRectangle(width=w, height=h, corner_radius=0.18, **style)
+            self.shape = RoundedRectangle(width=w, height=h, corner_radius=0.22, **style)
+        self.tint = self.shape.copy().set_stroke(width=0).set_fill(self.color, opacity=self.fill_opacity)
         self.label.move_to(self.shape)
-        super().__init__(self.shape, self.label, **kwargs)
+        parts = [self.shape, self.tint, self.label]
+        if shadow:
+            parts.insert(0, soft_shadow(self.shape))
+        super().__init__(*parts, **kwargs)
 
     def highlight(self, color=None, run_time: float = 0.8) -> Animation:
         c = color or get_theme().accent
         return AnimationGroup(
-            self.shape.animate.set_stroke(c, width=5).set_fill(c, opacity=0.3),
-            Indicate(self.label, color=c, scale_factor=1.08), run_time=run_time,
+            self.shape.animate.set_stroke(c, width=0 if get_theme().name == "bubble" else 5),
+            self.tint.animate.set_fill(c, opacity=1 if get_theme().name == "bubble" else 0.38),
+            Indicate(self.label, color=get_theme().text if get_theme().name == "bubble" else c,
+                     scale_factor=1.08), run_time=run_time,
         )
 
     def unhighlight(self, run_time: float = 0.6) -> Animation:
-        return self.shape.animate.set_stroke(self.color, width=3).set_fill(self.color, opacity=0.18)
+        return AnimationGroup(self.shape.animate.set_stroke(
+                                  self.color, width=0 if get_theme().name == "bubble" else 3),
+                              self.tint.animate.set_fill(self.color, opacity=self.fill_opacity),
+                              run_time=run_time)
 
 
 class Connector(VGroup):
     """
-    An arrow between two mobjects' borders, with an optional label at its midpoint.
-    `curve` bends it (radians, e.g. 0.4); `dashed=True` for weaker or implied links.
+    An arrow between two mobjects' borders, with an optional label (on a small pill) at
+    its midpoint. `curve` bends it (radians, e.g. 0.4); `dashed=True` for weaker or
+    implied links.
 
     Example: Connector(cause, effect, label="leads to")
     """
 
     def __init__(self, start: Mobject, end: Mobject, label: str | None = None, color=None,
                  curve: float = 0.0, dashed: bool = False, tip: bool = True,
-                 buff: float = 0.12, label_size="small", **kwargs):
+                 buff: float = 0.14, label_size="tiny", **kwargs):
         theme = get_theme()
         c = color or theme.muted
         a, b = start.get_center(), end.get_center()
@@ -88,16 +101,21 @@ class Connector(VGroup):
         if dashed:
             self.line = DashedLine(p0, p1, stroke_color=c, stroke_width=3, dash_length=0.12)
         elif tip:
-            self.line = Arrow(p0, p1, buff=0, path_arc=curve, thickness=3, fill_color=c)
+            self.line = Arrow(p0, p1, buff=0, path_arc=curve, thickness=3.5, fill_color=c,
+                              tip_width_ratio=4)
         else:
             self.line = Line(p0, p1, path_arc=curve, stroke_color=c, stroke_width=3)
         parts = [self.line]
         self.label = None
         if label:
-            self.label = Label(label, size=label_size, color=theme.muted)
+            text = Label(label, size=label_size, color=theme.text, bold=True)
+            h = text.get_height() + 0.22
+            pill = RoundedRectangle(width=text.get_width() + 0.36, height=h, corner_radius=h / 2,
+                                    fill_color=theme.surface, fill_opacity=1, stroke_color=c,
+                                    stroke_width=0 if theme.name == "bubble" else 1.5)
+            self.label = VGroup(pill, text.move_to(pill))
             normal = np.array([-d[1], d[0], 0])
-            self.label.move_to((p0 + p1) / 2 + normal * (0.28 + abs(curve) * 0.5))
-            self.label.set_backstroke(theme.background, 6)
+            self.label.move_to((p0 + p1) / 2 + normal * abs(curve) * 0.5)
             parts.append(self.label)
         super().__init__(*parts, **kwargs)
 
@@ -105,7 +123,7 @@ class Connector(VGroup):
         anims = [ShowCreation(self.line) if isinstance(self.line, (DashedLine, Line))
                  and not isinstance(self.line, Arrow) else GrowArrow(self.line)]
         if self.label is not None:
-            anims.append(FadeIn(self.label))
+            anims.append(FadeIn(self.label, scale=0.8))
         return AnimationGroup(*anims, **kwargs)
 
 
@@ -224,6 +242,7 @@ class VennDiagram(VGroup):
     """
 
     def __init__(self, set_names: list[str], radius: float = 1.8, colors=None, **kwargs):
+        theme = get_theme()
         n = len(set_names)
         if n not in (2, 3):
             raise ValueError("VennDiagram supports 2 or 3 sets")
@@ -235,9 +254,10 @@ class VennDiagram(VGroup):
         for i, (name, c) in enumerate(zip(set_names, centers)):
             c = np.array(c, dtype=float)
             col = colors[i] if colors else palette_color(i)
-            circle = Circle(radius=radius, stroke_color=col, stroke_width=3,
-                            fill_color=col, fill_opacity=0.18).move_to(c)
-            label = Label(name, size="label", color=col, bold=True)
+            circle = Circle(radius=radius, stroke_color=col,
+                            stroke_width=0 if theme.name == "bubble" else 3,
+                            fill_color=col, fill_opacity=0.55 if theme.name == "bubble" else 0.18).move_to(c)
+            label = Label(name, size="label", color=theme.text if theme.name == "bubble" else col, bold=True)
             direction = c / (np.linalg.norm(c) or 1)
             if n == 2:
                 direction = UP
@@ -310,15 +330,25 @@ class ComparisonTable(VGroup):
             self._cells.append(VGroup(*cells))
             y -= row_h[r] + row_gap
         total_w = sum(col_w) + col_gap * (n_cols - 1)
+        total_h = -y - row_gap
+        pad = 0.45
+        self.panel = Panel(total_w + 2 * pad, total_h + 2 * pad, color=theme.outline, tint=0.0,
+                           corner_radius=0.22)
+        self.panel.move_to(np.array([total_w / 2, -total_h / 2, 0]))
+        # Header band and zebra stripes
         self.rules = VGroup()
-        y = -row_h[0] - row_gap / 2
-        self.rules.add(Line(LEFT * 0.2, RIGHT * (total_w + 0.2), stroke_color=theme.accent,
-                            stroke_width=2).shift(UP * y))
-        for r in range(1, len(grid) - 1):
-            y -= row_h[r] + row_gap
-            self.rules.add(Line(LEFT * 0.2, RIGHT * (total_w + 0.2), stroke_color=theme.outline,
-                                stroke_width=1).shift(UP * y))
-        super().__init__(*self._cells, self.rules, **kwargs)
+        y = 0.0
+        for r in range(len(grid)):
+            band_h = row_h[r] + row_gap
+            if r == 0 or r % 2 == 0:
+                band = RoundedRectangle(
+                    width=total_w + 2 * pad - 0.16, height=band_h, corner_radius=0.1,
+                    fill_color=theme.accent if r == 0 else theme.outline,
+                    fill_opacity=0.16 if r == 0 else 0.14, stroke_width=0)
+                band.move_to(np.array([total_w / 2, y - row_h[r] / 2, 0]))
+                self.rules.add(band)
+            y -= band_h
+        super().__init__(self.panel, self.rules, *self._cells, **kwargs)
         self.center()
 
     def cell(self, r: int, c: int) -> Mobject:
@@ -331,7 +361,8 @@ class ComparisonTable(VGroup):
         return VGroup(*(row[c] for row in self._cells if c < len(row)))
 
     def build(self, lag_ratio: float = 0.25, **kwargs) -> Animation:
-        return LaggedStart(Write(self._cells[0]), ShowCreation(self.rules),
+        return LaggedStart(FadeIn(VGroup(self.panel, self.rules), scale=0.97),
+                           FadeIn(self._cells[0], shift=DOWN * 0.1),
                            *(FadeIn(r, shift=DOWN * 0.15) for r in self._cells[1:]),
                            lag_ratio=lag_ratio, **kwargs)
 

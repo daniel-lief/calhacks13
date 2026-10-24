@@ -10,11 +10,11 @@ import numpy as np
 from manimlib import (
     Animation, AnimationGroup, Arrow, Circle, DashedLine, Dot, FadeIn, Group, Indicate,
     LaggedStart, Line, Line3D, Mobject, Rotate, Rotating, RoundedRectangle, ShowCreation, Sphere,
-    Succession, Tex, Text, VGroup, VMobject, Write, UP, DOWN, LEFT, RIGHT, ORIGIN, OUT, TAU, PI,
+    Succession, Tex, Text, VGroup, VMobject, VectorizedPoint, Write, UP, DOWN, LEFT, RIGHT, ORIGIN, OUT, TAU, PI,
 )
 
 from animai.core.media import Label
-from animai.core.theme import get_theme
+from animai.core.theme import get_theme, palette_color
 
 __all__ = [
     "Molecule", "Molecule3D", "ChemEquation", "EnergyDiagram", "PeriodicTable", "BohrAtom",
@@ -50,6 +50,10 @@ _SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 def element_color(symbol: str) -> str:
     """CPK-style color for an element, adjusted for the theme (carbon/hydrogen use text tones)."""
     theme = get_theme()
+    if theme.name == "bubble":
+        return {"H": "#D9D9D9", "C": "#9D8084", "N": "#A6C7EA", "O": "#F0B3BC",
+                "F": "#AAD9B0", "Cl": "#AAD9B0", "Br": "#F1C29D", "I": "#C7B6ED",
+                "S": "#ECD288", "P": "#F1C29D"}.get(symbol, theme.secondary)
     if symbol in ("C", "H"):
         return theme.text if symbol == "C" else theme.muted
     return _CPK.get(symbol, theme.secondary)
@@ -116,8 +120,16 @@ class Molecule(VGroup):
                     text += ("+" if charge > 0 else "−") * min(abs(charge), 1) if abs(charge) == 1 \
                         else f"{abs(charge)}{'+' if charge > 0 else '−'}"
                 label = Text(text.translate(_SUBSCRIPTS), font=theme.font, font_size=font_size,
-                             weight="BOLD", fill_color=element_color(sym))
+                             weight=theme.text_weight if theme.name == "bubble" else "BOLD",
+                             fill_color=element_color(sym))
                 label.move_to(p)
+                if theme.name == "bubble":
+                    disc = RoundedRectangle(width=label.get_width() + .16,
+                                            height=label.get_height() + .13,
+                                            corner_radius=.12, fill_color=element_color(sym),
+                                            fill_opacity=1, stroke_width=0).move_to(p)
+                    label.set_color(theme.text)
+                    label = VGroup(disc, label)
                 self.atoms.append(label)
                 labeled.append(True)
             else:
@@ -182,11 +194,14 @@ class Molecule(VGroup):
         return self.bonds[(i, j)] if (i, j) in self.bonds else self.bonds[(j, i)]
 
     def build(self, run_time: float = 2.0, **kwargs) -> Animation:
-        labels = [a for a in self.atoms if isinstance(a, Text)]
-        anims = [LaggedStart(*(ShowCreation(b) for b in self.bonds.values()), lag_ratio=0.05,
-                             run_time=run_time * 0.6),
-                 LaggedStart(*(FadeIn(l, scale=0.7) for l in labels), lag_ratio=0.05,
-                             run_time=run_time * 0.4)]
+        labels = [a for a in self.atoms if not isinstance(a, Dot)]
+        anims = []
+        if self.bonds:
+            anims.append(LaggedStart(*(ShowCreation(b) for b in self.bonds.values()), lag_ratio=0.05,
+                                    run_time=run_time * 0.6))
+        if labels:
+            anims.append(LaggedStart(*(FadeIn(l, scale=0.7) for l in labels), lag_ratio=0.05,
+                                    run_time=run_time * 0.4))
         if self.name_label is not None:
             anims.append(FadeIn(self.name_label))
         return Succession(*anims, **kwargs)
@@ -223,7 +238,8 @@ class Molecule3D(Group):
         self.balls = Group()
         for sym, p in zip(self.symbols, pts):
             r = 0.22 if sym == "H" else 0.36
-            color = _CPK.get(sym, "#B0B0B0") if sym != "C" else "#5A5A5A"
+            color = element_color(sym) if get_theme().name == "bubble" else (
+                _CPK.get(sym, "#B0B0B0") if sym != "C" else "#5A5A5A")
             ball = Sphere(radius=r * scale / 1.3, resolution=(24, 12))
             ball.set_color(color).move_to(p)
             self.balls.add(ball)
@@ -231,10 +247,16 @@ class Molecule3D(Group):
         for b in mol.GetBonds():
             i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
             stick = Line3D(pts[i], pts[j], width=0.08, resolution=(8, 8))
-            stick.set_color("#BFBFBF")
+            stick.set_color(get_theme().muted if get_theme().name == "bubble" else "#BFBFBF")
             self.sticks.add(stick)
-        super().__init__(self.sticks, self.balls, **kwargs)
+        # Reserve the molecule's rotational envelope before region fitting. A later
+        # spin must not send atoms outside the cream presentation card.
+        radius = max(np.linalg.norm(p) for p in pts) + .36 * scale / 1.3
+        bounds = [VectorizedPoint(np.eye(3)[axis] * radius * sign)
+                  for axis in range(3) for sign in (-1, 1)]
+        super().__init__(self.sticks, self.balls, *bounds, **kwargs)
         self.apply_depth_test()
+        self.auto_scale = False  # Its extent changes as it spins, so show() keeps its size
 
     def spin(self, angle: float = TAU, axis=UP, run_time: float = 6.0, **kwargs) -> Animation:
         return Rotate(self, angle, axis=axis, run_time=run_time, rate_func=lambda t: t, **kwargs)
@@ -428,16 +450,18 @@ class PeriodicTable(VGroup):
         for z, sym in enumerate(_ELEMENTS, start=1):
             row, col = _grid_position(z)
             cat = next(c for c, zs in _CATEGORIES.items() if z in zs)
-            color = _CATEGORY_COLORS[cat]
+            color = palette_color(list(_CATEGORY_COLORS).index(cat)) if theme.name == "bubble" else _CATEGORY_COLORS[cat]
             box = RoundedRectangle(width=cell_size * 0.94, height=cell_size * 0.94,
-                                   corner_radius=0.05, fill_color=color, fill_opacity=0.28,
-                                   stroke_color=color, stroke_width=1.5)
-            label = Text(sym, font=theme.font, font_size=int(cell_size * 34), weight="BOLD",
+                                   corner_radius=0.12 if theme.name == "bubble" else 0.05,
+                                   fill_color=color, fill_opacity=1 if theme.name == "bubble" else 0.28,
+                                   stroke_color=color, stroke_width=0 if theme.name == "bubble" else 1.5)
+            label = Text(sym, font=theme.font, font_size=int(cell_size * 34), weight=theme.text_weight,
                          fill_color=theme.text)
             parts = [box, label.move_to(box).shift(DOWN * cell_size * 0.06)]
             if show_numbers:
                 num = Text(str(z), font=theme.font, font_size=int(cell_size * 15),
-                           fill_color=theme.muted)
+                           weight=theme.text_weight,
+                           fill_color=theme.text if theme.name == "bubble" else theme.muted)
                 num.move_to(box.get_corner(UP + LEFT) + np.array([0.06, -0.06, 0]) * cell_size / 0.68,
                             aligned_edge=UP + LEFT)
                 parts.append(num)

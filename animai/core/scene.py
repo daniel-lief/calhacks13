@@ -7,17 +7,23 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from manimlib import (
-    Animation, FadeIn, FadeOut, FadeTransform, Mobject, Scene, Write, VGroup, UP, DOWN,
+    Animation, FadeIn, FadeOut, GrowFromCenter, LaggedStart, Mobject, RoundedRectangle, Scene,
+    Write, VGroup, UP, DOWN, IN, ORIGIN,
 )
+from manimlib.mobject.svg.string_mobject import StringMobject
 
 from . import narration
 from .layout import fit, region, overlaps
-from .media import Label, Title
+from .media import Badge, BulletList, Callout, Card, Label, QuoteCard, Title
+from .style import Panel, enter, exit_anim, make_backdrop
 from .theme import get_theme
 
 __all__ = ["AnimaiScene", "Voiceover"]
 
 SEGMENT_GAP = 0.35  # Breathing room after each narrated beat
+BACKDROP_DEPTH = 15.0
+# Shown at their designed size by default; everything else is enlarged to fill its region
+_TEXT_LIKE = (StringMobject, Title, BulletList, Card, QuoteCard, Badge, Callout)
 
 
 class Voiceover:
@@ -46,8 +52,15 @@ class AnimaiScene(Scene):
         theme = get_theme()
         self.set_background_color(theme.background)
         self.theme = theme
+        self.backdrop = make_backdrop(theme)
+        # Push the backdrop well behind the scene (enlarged to look the same) so the depth it
+        # writes never hides the back half of 3D objects such as molecules
+        f = self.frame.get_focal_distance()
+        self.backdrop.scale((f + BACKDROP_DEPTH) / f, about_point=ORIGIN).shift(IN * BACKDROP_DEPTH)
+        self.add(self.backdrop)
         self._segments: list[dict] = []
         self._regions: dict[str, Mobject] = {}
+        self._region_panels: dict[str, Mobject] = {}
         self._title: Mobject | None = None
 
     # --- Narration -------------------------------------------------------------
@@ -91,30 +104,53 @@ class AnimaiScene(Scene):
         return fit(mob, where, buff=buff, scale_up=scale_up, **kwargs)
 
     def show(self, mob: Mobject, where: str | None = "main", animation=None,
-             run_time: float = 1.0, replace: bool = True, scale_up: bool = False, **kwargs):
+             run_time: float = 1.0, replace: bool = True, scale_up: bool | None = None, **kwargs):
         """
-        Fit `mob` into a region and animate it in. Whatever this scene previously showed in
-        that region (or in any region it overlaps) fades out first when replace=True,
-        so successive ideas don't pile up. Pass where=None to keep mob's current position.
+        Fit `mob` into a region and animate it in. Diagrams, charts and other visuals are
+        enlarged to fill the region (text keeps its size unless scale_up=True). Whatever
+        this scene previously showed in that region (or in any region it overlaps) fades
+        out first when replace=True, so successive ideas don't pile up. Pass where=None to
+        keep mob's current position.
 
         `animation` is an animation class (FadeIn, Write, ShowCreation, GrowFromCenter...)
-        or a ready-made animation such as `bullets.reveal()`.
+        or a ready-made animation such as `bullets.reveal()`; the default is a soft rise-in.
         """
+        framed = (self.theme.name == "bubble" and where is not None
+                  and not isinstance(mob, _TEXT_LIKE) and not hasattr(mob, "panel"))
         if where is not None:
-            fit(mob, where, scale_up=scale_up)
+            if scale_up is None:
+                scale_up = not isinstance(mob, _TEXT_LIKE) and getattr(mob, "auto_scale", True)
+            if scale_up:
+                fit(mob, where, buff=0.55 if framed else 0.3, scale_up=True, max_scale=1.8)
+            else:
+                fit(mob, where, buff=0.55 if framed else 0.15)
         outgoing = []
         if replace:
             for name, old in list(self._regions.items()):
                 if self.is_on_screen(old) and (name == where or overlaps(old, mob, 0.05)):
                     outgoing.append(old)
+                    panel = self._region_panels.pop(name, None)
+                    if panel is not None:
+                        outgoing.append(panel)
                     del self._regions[name]
-        anims = [FadeOut(_frozen(m)) for m in outgoing]
+        anims = [exit_anim(_frozen(m)) for m in outgoing]
+        if framed and not (not replace and where in self._region_panels):
+            r = region(where)
+            panel = Panel(r.width - 0.12, r.height - 0.12, tint=0, corner_radius=0.23)
+            panel.move_to(r.center)
+            # Keep the card behind both halves of rotating 3D molecules.
+            f = self.frame.get_focal_distance()
+            panel.scale((f + 4) / f, about_point=ORIGIN).shift(IN * 4)
+            self._region_panels[where] = panel
+            anims.append(FadeIn(panel))
         if isinstance(animation, Animation):
             anims.append(animation)
         else:
-            anims.append((animation or FadeIn)(mob, **kwargs))
+            anims.append((animation or enter)(mob, **kwargs))
         self.play(*anims, run_time=run_time)
         self.add(mob)  # Register the whole group even if the animation added its parts
+        if self._title is not None and self.is_on_screen(self._title):
+            self.bring_to_front(self._title)  # Titles stay readable over maps and diagrams
         self._regions[where or f"_free_{id(mob)}"] = mob
         return mob
 
@@ -128,6 +164,9 @@ class AnimaiScene(Scene):
         for item in names_or_mobs:
             if isinstance(item, str):
                 mob = self._regions.pop(item, None)
+                panel = self._region_panels.pop(item, None)
+                if panel is not None:
+                    mobs.append(panel)
                 if mob is not None:
                     mobs.append(mob)
             else:
@@ -135,40 +174,54 @@ class AnimaiScene(Scene):
                 for k, v in list(self._regions.items()):
                     if v is item:
                         del self._regions[k]
+                        panel = self._region_panels.pop(k, None)
+                        if panel is not None:
+                            mobs.append(panel)
         mobs = [m for m in mobs if self.is_on_screen(m)]
         if mobs:
-            self.play(*(FadeOut(_frozen(m)) for m in mobs), run_time=run_time)
+            self.play(*(exit_anim(_frozen(m)) for m in mobs), run_time=run_time)
 
     def set_title(self, text: str, run_time: float = 1.0, **kwargs) -> Mobject:
-        """Show a section title at the top, transforming from the previous one if present."""
+        """Show a section title at the top, sliding out the previous one if present."""
         new = Title(text, **kwargs)
         if self._title is not None and self.is_on_screen(self._title):
-            self.play(FadeTransform(self._title, new), run_time=run_time)
+            self.play(FadeOut(self._title, shift=UP * 0.35), FadeIn(new, shift=UP * 0.35),
+                      run_time=run_time)
         else:
-            self.play(Write(new.text), *(FadeIn(m) for m in new.submobjects[1:]), run_time=run_time)
+            anims = [FadeIn(new.text, shift=UP * 0.25)]
+            if len(new.submobjects) > 1:
+                anims.append(GrowFromCenter(new.submobjects[1]))
+            self.play(*anims, run_time=run_time)
         self.add(new)
         self._title = new
         return new
 
-    def title_card(self, title: str, subtitle: str | None = None, run_time: float = 1.5):
+    def title_card(self, title: str, subtitle: str | None = None, run_time: float = 1.6):
         """Big centered title (and optional subtitle) for the opening of a video."""
         theme = get_theme()
-        t = Label(title, size="title", bold=True, max_width=12.5)
-        group = VGroup(t)
+        t = Label(title, size=96 if theme.name == "bubble" else "title", bold=True, max_width=11.5)
+        bar = RoundedRectangle(width=1.6, height=0.09, corner_radius=0.045,
+                               fill_color=theme.accent, fill_opacity=1, stroke_width=0)
+        if theme.name == "bubble":
+            bar.set_opacity(0)
+        group = VGroup(t, bar)
         if subtitle:
-            s = Label(subtitle, size="body", color=theme.muted, max_width=11)
-            group.add(s)
-        group.arrange(DOWN, buff=0.35).move_to(region("full").center)
-        self.play(Write(t), *(FadeIn(m, shift=UP * 0.2) for m in group.submobjects[1:]),
-                  run_time=run_time)
+            group.add(Label(subtitle, size="body",
+                            color=theme.accent if theme.name == "bubble" else theme.muted,
+                            max_width=11))
+        group.arrange(DOWN, buff=0.38).move_to(region("full").center)
+        anims = [Write(t), GrowFromCenter(bar)]
+        anims += [FadeIn(m, shift=UP * 0.2) for m in group.submobjects[2:]]
+        self.play(LaggedStart(*anims, lag_ratio=0.3), run_time=run_time)
         return group
 
     def fade_out_all(self, run_time: float = 1.0, **kwargs):
         """Fade out everything on screen (use between sections)."""
-        mobjects = [m for m in self.mobjects if m is not self.frame]
+        mobjects = [m for m in self.mobjects if m is not self.frame and m is not self.backdrop]
         if mobjects:
             self.play(*(FadeOut(_frozen(m)) for m in mobjects), run_time=run_time, **kwargs)
         self._regions.clear()
+        self._region_panels.clear()
         self._title = None
 
     # --- Lifecycle -------------------------------------------------------------
