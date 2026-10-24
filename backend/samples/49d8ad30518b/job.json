@@ -24,5 +24,44 @@
   "finished_at": 1792875503.8187022,
   "logs": [],
   "public": true,
-  "sample": true
+  "sample": true,
+  "tags": [
+    "computer science",
+    "dijkstra's algorithm",
+    "shortest path",
+    "algorithms",
+    "graph theory",
+    "google maps",
+    "networks",
+    "greedy algorithm",
+    "edsger dijkstra",
+    "navigation",
+    "routing"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Intro"
+    },
+    {
+      "start": 9.57,
+      "title": "The network and goal"
+    },
+    {
+      "start": 28.8,
+      "title": "Greedy distance idea"
+    },
+    {
+      "start": 49.7,
+      "title": "Relaxing an edge"
+    },
+    {
+      "start": 60.5,
+      "title": "Full run-through"
+    },
+    {
+      "start": 90.93,
+      "title": "Recap"
+    }
+  ]
 }

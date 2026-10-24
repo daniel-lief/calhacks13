@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Animai · Animated Explainers</title>
   <meta name="description" content="Short animated explainers on anything. Watch what others made, or type a topic and Claude makes one for you.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23222124'/><path d='M4 16c3-9 7-9 12 0s9 9 12 0' stroke='%23f0f2f0' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%231a191c'/><path d='M4 16c3-9 7-9 12 0s9 9 12 0' stroke='%23f0f2f0' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body data-preloading="true">
-  <div class="noise" aria-hidden="true"></div>
   <canvas id="scene" class="particle-scene" aria-hidden="true"></canvas>
   <div class="preloader" id="preloader" aria-hidden="true"><span class="count t-30" id="preloader-count">0</span></div>
 
@@ -112,8 +111,15 @@
         <h1 class="t-49">Feed</h1>
         <p class="t-16 muted caps" id="feed-count"></p>
       </header>
+      <div class="search" role="search">
+        <label class="visually-hidden" for="search">Search the feed</label>
+        <input id="search" type="search" class="search-input t-30" placeholder="Search by topic, title or tag" autocomplete="off" spellcheck="false">
+        <button id="search-clear" type="button" class="link-button muted t-16 caps" hidden>Clear</button>
+      </div>
+      <div class="tag-row t-16" id="tag-row" aria-label="Popular tags"></div>
       <div class="grid" id="feed-grid"></div>
       <p class="empty t-30" id="feed-empty" hidden>Nothing has been posted yet. <a class="inline-link" href="#/create">Make the first video</a>.</p>
+      <p class="empty t-30" id="feed-nomatch" hidden></p>
     </section>
 
     <!-- Scroll: vertical, one video at a time -->
@@ -121,6 +127,51 @@
       <div class="reel" id="reel" tabindex="-1" aria-label="Videos. Use the up and down arrow keys or the scroll wheel to move between them."></div>
       <p class="reel-empty t-30" id="reel-empty" hidden>Nothing to watch yet. <a class="inline-link" href="#/create">Make the first video</a>.</p>
       <p class="reel-hint t-16 muted caps" id="reel-hint">Scroll or use the arrow keys</p>
+    </section>
+
+    <!-- Watch: one video in 16:9, YouTube style -->
+    <section class="screen screen-video" id="screen-video" hidden>
+      <div class="watch">
+        <div class="watch-main">
+          <video id="watch-video" class="watch-player" playsinline preload="metadata"></video>
+          <h1 class="t-30 watch-title" id="watch-title"></h1>
+          <div class="watch-bar">
+            <p class="t-16 muted caps" id="watch-meta"></p>
+            <div class="watch-actions t-16" id="watch-actions"></div>
+          </div>
+          <div class="watch-details">
+            <div class="tag-list t-16" id="watch-tags"></div>
+            <p class="t-16 muted" id="watch-prompt"></p>
+            <ol class="chapter-list t-16" id="watch-chapters" aria-label="Chapters"></ol>
+            <div class="watch-owner t-16" id="watch-owner" hidden>
+              <button id="watch-public" type="button" class="link-button caps"></button>
+              <button id="watch-edit-tags" type="button" class="link-button caps">Edit tags</button>
+              <button id="watch-toggle-code" type="button" class="link-button caps">View code</button>
+              <a id="watch-download" class="link-button caps" download>Download</a>
+              <button id="watch-delete" type="button" class="link-button muted caps">Delete</button>
+            </div>
+            <form id="watch-tag-form" class="tag-form t-16" hidden>
+              <label class="visually-hidden" for="watch-tag-input">Tags, separated by commas, most relevant first</label>
+              <input id="watch-tag-input" type="text" maxlength="400" autocomplete="off">
+              <button type="submit" class="link-button caps">Save</button>
+              <button id="watch-tag-cancel" type="button" class="link-button muted caps">Cancel</button>
+            </form>
+          </div>
+          <div id="watch-code" class="code-panel" hidden>
+            <div class="code-bar t-16"><span class="muted">scene.py</span><button id="watch-copy-code" type="button" class="link-button">Copy</button></div>
+            <pre><code id="watch-code-text"></code></pre>
+          </div>
+        </div>
+        <aside class="watch-side">
+          <div class="watch-transcript" id="watch-transcript-wrap">
+            <p class="t-16 muted caps">Transcript</p>
+            <ol class="transcript t-16" id="watch-transcript" aria-label="Transcript"></ol>
+          </div>
+          <p class="t-16 muted caps">Up next</p>
+          <div class="up-next" id="up-next"></div>
+        </aside>
+      </div>
+      <p class="empty t-30" id="watch-missing" hidden>This video isn't available. <a class="inline-link" href="#/feed">Back to the feed</a>.</p>
     </section>
 
     <!-- Create -->
@@ -171,6 +222,16 @@
             <p class="t-16 muted caps" id="job-elapsed"></p>
           </div>
           <h2 class="t-49" id="job-title"></h2>
+          <div class="job-tags t-16" id="job-tags">
+            <div class="tag-list" id="job-tag-list"></div>
+            <button id="edit-tags" type="button" class="link-button muted caps">Edit tags</button>
+            <form id="tag-form" class="tag-form" hidden>
+              <label class="visually-hidden" for="tag-input">Tags, separated by commas</label>
+              <input id="tag-input" type="text" maxlength="240" autocomplete="off" placeholder="physics, waves, light">
+              <button type="submit" class="link-button caps">Save</button>
+              <button id="tag-cancel" type="button" class="link-button muted caps">Cancel</button>
+            </form>
+          </div>
 
           <ol class="steps t-16 caps" id="steps">
             <li data-step="writing">Script</li>
@@ -186,7 +247,7 @@
           </div>
 
           <div id="player" class="player" hidden>
-            <video id="video" controls playsinline preload="metadata"></video>
+            <video id="video" playsinline preload="metadata"></video>
             <div class="actions t-20">
               <a id="download" class="link-button" download>Download MP4</a>
               <button id="toggle-public" class="link-button" type="button"></button>
@@ -222,8 +283,20 @@
         <h1 class="t-49">Library</h1>
         <p class="t-16 muted caps" id="library-count"></p>
       </header>
+      <div class="library-tabs t-20" id="library-tabs" role="group" aria-label="Show">
+        <button type="button" data-show="">All</button>
+        <button type="button" data-show="created">Created</button>
+        <button type="button" data-show="saved">Saved</button>
+      </div>
+      <div class="search" role="search">
+        <label class="visually-hidden" for="library-search">Search your library</label>
+        <input id="library-search" type="search" class="search-input t-30" placeholder="Search by topic, title or tag" autocomplete="off" spellcheck="false">
+        <button id="library-search-clear" type="button" class="link-button muted t-16 caps" hidden>Clear</button>
+      </div>
+      <div class="tag-row t-16" id="library-tag-row" aria-label="Popular tags"></div>
       <div class="grid" id="library-grid"></div>
-      <p class="empty t-30" id="library-empty" hidden>Your videos will show up here. <a class="inline-link" href="#/create">Make your first one</a>.</p>
+      <p class="empty t-30" id="library-empty" hidden></p>
+      <p class="empty t-30" id="library-nomatch" hidden></p>
     </section>
   </div>
 
@@ -231,8 +304,10 @@
 
   <script src="/static/scene.js"></script>
   <script src="/static/core.js"></script>
+  <script src="/static/player.js"></script>
   <script src="/static/create.js"></script>
   <script src="/static/browse.js"></script>
+  <script src="/static/watch.js"></script>
   <script src="/static/library.js"></script>
   <script src="/static/app.js"></script>
 </body>

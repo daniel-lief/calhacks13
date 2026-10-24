@@ -55,6 +55,7 @@ Animai, a library of educational components built on ManimGL (3b1b's own engine)
 from animai import *
 
 TITLE = "Short catchy video title"
+TAGS = ["history", "silk road", "trade routes", "rome", "han dynasty", "marco polo"]  # 8-12 search tags, see below
 THEME = "classic"  # classic | chalkboard | paper | blueprint
 
 
@@ -71,6 +72,11 @@ class Explainer(AnimaiScene):
         ...
 ```
 
+- `TAGS`: 8-12 short lowercase search tags, most relevant first: the broad subject, then the
+  specific topic, then looser associations a curious viewer might search for (related people,
+  places, eras, inventions, fields, everyday examples), e.g. "rome" and "marco polo" for the
+  Silk Road, "google maps" for Dijkstra. Only associations the video touches or clearly evokes.
+  Use the short words people type into a search box ("rome", not "the roman empire").
 - Exactly one scene class, named `Explainer`, subclassing `AnimaiScene`. `from animai import *`
   provides everything (Animai and all of ManimGL, plus numpy as np). Other allowed imports:
   math, cmath, random, itertools, functools, operator, colorsys, fractions, collections,
@@ -225,3 +231,43 @@ def system_prompt() -> str:
             _system_prompt = "\n\n".join([GUIDE, _animai_reference(), ENGINE_REFERENCE.strip(),
                                           OUTPUT_FORMAT])
         return _system_prompt
+
+
+TAG_GUIDANCE = (
+    "Tags help people find the video by searching. Give 8-12 short lowercase tags, most relevant "
+    "first: the broad subject (\"physics\", \"history\", \"computer science\"), then the specific "
+    "topic, then looser associations someone might search for even though they're only part of "
+    "the story: related people, places, eras, inventions, fields and everyday examples. For a "
+    "Silk Road video that means tags like \"rome\", \"marco polo\" and \"silk\"; for Dijkstra's "
+    "algorithm, \"google maps\" and \"networks\". Only include associations the video actually "
+    "touches or that a curious viewer would reasonably connect to it. Use the short, plain words "
+    "people actually type into a search box: \"rome\" rather than \"the roman empire\", "
+    "\"galileo\" rather than \"galileo galilei\"."
+)
+
+
+def tag_request(topic: str, title: str | None, narration: str) -> str:
+    return (
+        "Write search tags for a short animated explainer video.\n\n"
+        f"Topic the viewer asked for: {topic}\n"
+        f"Video title: {title or topic}\n"
+        f"Narration: {narration or '(not available)'}\n\n"
+        f"{TAG_GUIDANCE}"
+    )
+
+
+def chapter_request(topic: str, title: str | None, lines: list[str]) -> str:
+    numbered = "\n".join(f"{i}. {line}" for i, line in enumerate(lines))
+    return (
+        "Split this short explainer video into chapters, like YouTube chapters, so a viewer can "
+        "jump to the part they want.\n\n"
+        f"Topic: {topic}\nVideo title: {title or topic}\n\n"
+        f"Narration, one numbered line per beat:\n{numbered}\n\n"
+        "Give 3-6 chapters (fewer for a short video). Each chapter is a run of consecutive lines; "
+        "give the number of its first line. The first chapter starts at line 0 and is usually the "
+        "hook or intro. Split where the video moves to a genuinely new idea, not at every line. "
+        "Titles are 1-4 words in sentence case and say what that part is about (\"How the route "
+        "worked\", \"Why ice floats\"), not generic labels like \"Part 2\". \"Intro\" and "
+        "\"Recap\" are fine for an opening hook and a closing summary."
+    )
+

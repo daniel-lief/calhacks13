@@ -24,5 +24,45 @@
   "finished_at": 1792876315.2117743,
   "logs": [],
   "public": true,
-  "sample": true
+  "sample": true,
+  "tags": [
+    "history",
+    "silk road",
+    "silk",
+    "trade routes",
+    "china",
+    "rome",
+    "han dynasty",
+    "black death",
+    "buddhism",
+    "central asia",
+    "marco polo",
+    "ancient trade"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Intro"
+    },
+    {
+      "start": 8.47,
+      "title": "Origins and route"
+    },
+    {
+      "start": 31.1,
+      "title": "Hand to hand trade"
+    },
+    {
+      "start": 40.2,
+      "title": "Goods and ideas"
+    },
+    {
+      "start": 60.13,
+      "title": "Disease and decline"
+    },
+    {
+      "start": 81.67,
+      "title": "Recap"
+    }
+  ]
 }

@@ -24,5 +24,44 @@
   "finished_at": 1792875696.8543494,
   "logs": [],
   "public": true,
-  "sample": true
+  "sample": true,
+  "tags": [
+    "computer science",
+    "merge sort",
+    "sorting algorithms",
+    "algorithms",
+    "divide and conquer",
+    "time complexity",
+    "big o notation",
+    "n log n",
+    "recursion",
+    "quicksort",
+    "data structures"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Intro"
+    },
+    {
+      "start": 10.63,
+      "title": "Splitting the list"
+    },
+    {
+      "start": 22.7,
+      "title": "How merging works"
+    },
+    {
+      "start": 54.07,
+      "title": "Merging back up"
+    },
+    {
+      "start": 65.83,
+      "title": "Why it's fast"
+    },
+    {
+      "start": 89.3,
+      "title": "Recap"
+    }
+  ]
 }

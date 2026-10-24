@@ -4,16 +4,17 @@
 // page's marquee of feed posts.
 //
 //   #/            landing (scroll story)      #/watch[/id]  vertical scroller
-//   #/feed        feed grid                   #/create      new video
-//   #/library     your videos                 #/v/<id>      one of your videos
+//   #/feed        feed grid                   #/video/<id>  one video, 16:9 watch page
+//   #/library     your videos                 #/create      new video
+//                                             #/v/<id>      progress of a video you're making
 
 const landing = $("#landing");
 const appShell = $("#app");
 const screens = {
-  feed: $("#screen-feed"), watch: $("#screen-watch"),
+  feed: $("#screen-feed"), watch: $("#screen-watch"), video: $("#screen-video"),
   create: $("#screen-create"), library: $("#screen-library"),
 };
-const SCENE_SHAPE = { feed: "dust", watch: "dust", create: "panel", library: "dust" };
+const SCENE_SHAPE = { feed: "dust", watch: "dust", video: "dust", create: "panel", library: "dust" };
 
 let screen = null;   // current app screen, or null on the landing page
 
@@ -21,6 +22,7 @@ function parseRoute() {
   const h = location.hash;
   let m;
   if ((m = h.match(/^#\/watch(?:\/([\w-]+))?/))) return { screen: "watch", id: m[1] };
+  if ((m = h.match(/^#\/video\/([\w-]+)/))) return { screen: "video", id: m[1] };
   if ((m = h.match(/^#\/v\/([\w-]+)/))) return { screen: "create", id: m[1] };
   if (h.startsWith("#/feed")) return { screen: "feed" };
   if (h.startsWith("#/create")) return { screen: "create" };
@@ -33,6 +35,7 @@ function route() {
   const previous = screen;
 
   if (previous === "watch" && r.screen !== "watch") leaveReel();
+  if (previous === "video" && r.screen !== "video") leaveVideo();
   if (previous === "library" && r.screen !== "library") leaveLibrary();
   if (previous === "create" && r.screen !== "create") stopJob();
 
@@ -51,14 +54,17 @@ function route() {
   landing.hidden = true;
   appShell.hidden = false;
   for (const [name, node] of Object.entries(screens)) node.hidden = name !== screen;
+  // The watch page belongs to wherever it was opened from
+  const nav = screen === "video" ? (["saved", "library"].includes(readFilter().from) ? "library" : "feed") : screen;
   document.querySelectorAll("[data-nav]").forEach((a) => {
-    if (a.dataset.nav === screen) a.setAttribute("aria-current", "page");
+    if (a.dataset.nav === nav) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
-  if (previous !== screen) window.scrollTo(0, 0);
+  if (previous !== screen || screen === "video") window.scrollTo(0, 0);
 
   if (screen === "feed") showFeed();
   else if (screen === "watch") { if (previous !== "watch") showReel(r.id); }
+  else if (screen === "video") showVideo(r.id);
   else if (screen === "create") r.id ? showJob(r.id) : showComposer();
   else if (screen === "library") showLibrary();
 
@@ -86,7 +92,7 @@ async function loadMarquee() {
 function marqueeTile(job) {
   const a = document.createElement("a");
   a.className = "tile";
-  a.href = `#/watch/${job.id}`;
+  a.href = `#/video/${job.id}`;
   const media = document.createElement("div");
   media.className = "tile-media";
   if (job.thumbnail_url) media.style.backgroundImage = `url("${job.thumbnail_url}")`;
@@ -132,7 +138,6 @@ $("#monogram").addEventListener("click", (e) => {
 
 // --- Boot --------------------------------------------------------------------
 
-paintGrain();
 splitText();
 customCursor();
 renderExamples();

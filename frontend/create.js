@@ -26,7 +26,11 @@ const el = {
   toggleCode: $("#toggle-code"), codePanel: $("#code-panel"), code: $("#code"), copyCode: $("#copy-code"),
   newVideo: $("#new-video"), failure: $("#failure"), failureMsg: $("#failure-msg"), retry: $("#retry"),
   failureNew: $("#failure-new"), log: $("#log"),
+  jobTags: $("#job-tags"), tagList: $("#job-tag-list"), editTags: $("#edit-tags"),
+  tagForm: $("#tag-form"), tagInput: $("#tag-input"), tagCancel: $("#tag-cancel"),
 };
+
+const jobPlayer = enhancePlayer(el.video);
 
 let current = null;       // job object being shown
 let pollTimer = null;
@@ -126,6 +130,8 @@ function showJob(id) {
   el.job.className = "job";
   el.jobTitle.textContent = "Loading";
   el.jobTopic.textContent = "";
+  el.jobTags.hidden = true;
+  closeTagEditor();
   poll(id);
 }
 
@@ -155,6 +161,7 @@ function renderJob(job) {
   el.job.className = `job ${job.status}`;
   el.jobTopic.textContent = STATUS_LABEL[job.status] || job.status;
   el.jobTitle.textContent = job.title || job.topic;
+  renderTags(job);
 
   // Steps
   const idx = job.status === "queued" ? -1 : STEPS.indexOf(job.status);
@@ -194,6 +201,8 @@ function renderJob(job) {
       : "";
     el.video.poster = job.thumbnail_url || "";
     el.video.src = job.video_url;
+    jobPlayer.setTitle(job.title || job.topic);
+    jobPlayer.setChapters(job.chapters);
     el.download.href = job.video_url;
     el.download.download = `${slug(job.title || job.topic)}.mp4`;
     codeLoadedFor = null;
@@ -259,6 +268,50 @@ el.togglePublic.addEventListener("click", async () => {
     current.public = updated.public;
     el.togglePublic.textContent = current.public ? "Remove from feed" : "Post to feed";
   } catch (err) { alert(err.message); }
+});
+
+// --- Tags ----------------------------------------------------------------------
+
+function renderTags(job) {
+  const tags = job.tags || [];
+  el.jobTags.hidden = tags.length === 0 && (job.sample || job.status !== "done");
+  el.tagList.replaceChildren(...topTags(job).map((t) => {
+    const link = document.createElement("a");
+    link.className = "chip";
+    link.href = `#/feed?tag=${encodeURIComponent(t)}`;
+    link.textContent = t;
+    return link;
+  }));
+  el.editTags.hidden = job.sample || !el.tagForm.hidden;
+  el.editTags.textContent = tags.length ? "Edit tags" : "Add tags";
+}
+
+function closeTagEditor() {
+  el.tagForm.hidden = true;
+  el.tagList.hidden = false;
+  if (current) renderTags(current);
+}
+
+el.editTags.addEventListener("click", () => {
+  el.tagInput.value = (current?.tags || []).join(", ");
+  el.tagForm.hidden = false;
+  el.tagList.hidden = true;
+  el.editTags.hidden = true;
+  el.tagInput.focus();
+});
+
+el.tagCancel.addEventListener("click", closeTagEditor);
+el.tagInput.addEventListener("keydown", (e) => { if (e.key === "Escape") closeTagEditor(); });
+
+el.tagForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!current) return;
+  const tags = el.tagInput.value.split(",").map((t) => t.trim()).filter(Boolean);
+  try {
+    const updated = await api(`/api/jobs/${current.id}`, { method: "PATCH", body: JSON.stringify({ tags }) });
+    current.tags = updated.tags;
+    closeTagEditor();
+  } catch (err) { alert(`Couldn't save tags: ${err.message}`); }
 });
 
 function makeAnother() {

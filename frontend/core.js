@@ -1,7 +1,7 @@
 "use strict";
 
 // Shared by every screen: API access, formatting helpers, likes, and the page
-// atmosphere (grain, preloader, text reveals, cursor).
+// atmosphere (preloader, text reveals, cursor).
 
 const ACTIVE = new Set(["queued", "writing", "checking", "rendering", "reviewing"]);
 const STATUS_LABEL = {
@@ -67,6 +67,21 @@ async function setLiked(job, liked) {
   return job.likes;
 }
 
+// --- Saves (stored on the server; only other people's posts can be saved) --------
+
+function canSave(job) {
+  return !!job.sample;
+}
+
+async function setSaved(job, saved) {
+  job.saved = saved;
+  try {
+    const updated = await api(`/api/jobs/${job.id}/save`, { method: "POST", body: JSON.stringify({ saved }) });
+    job.saved = updated.saved;
+  } catch { job.saved = !saved; }
+  return job.saved;
+}
+
 const viewedIds = new Set();   // count each video once per visit
 
 function countView(job) {
@@ -77,6 +92,7 @@ function countView(job) {
 }
 
 const HEART = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.6 4.5 7.1 4.5c2 0 3.6 1.1 4.9 2.8 1.3-1.7 2.9-2.8 4.9-2.8 3.5 0 5.7 3.5 4.4 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>`;
+const BOOKMARK = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-6-4.2-6 4.2z"/></svg>`;
 const EYE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
 
 // --- Formatting ----------------------------------------------------------------
@@ -102,6 +118,13 @@ function compact(n) {
 
 function plural(n, word) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+// Tags come ranked, most relevant first. Only the top few are shown; search uses them all.
+const SHOWN_TAGS = 3;
+
+function topTags(job) {
+  return (job.tags || []).slice(0, SHOWN_TAGS);
 }
 
 function author(job) {
@@ -131,20 +154,6 @@ function highlightPython(src) {
 }
 
 // --- Atmosphere ----------------------------------------------------------------
-
-function paintGrain() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const ctx = c.getContext("2d");
-  const img = ctx.createImageData(256, 256);
-  for (let i = 0; i < img.data.length; i += 4) {
-    const v = Math.random() * 255;
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-    img.data[i + 3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  $(".noise").style.backgroundImage = `url(${c.toDataURL()})`;
-}
 
 function splitText() {
   for (const node of document.querySelectorAll(".split")) {

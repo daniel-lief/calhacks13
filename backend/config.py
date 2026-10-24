@@ -15,6 +15,7 @@ load_dotenv(ROOT / ".env")
 DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "data")).resolve()
 JOBS_DIR = DATA_DIR / "jobs"
 STATS_PATH = DATA_DIR / "stats.json"       # likes and views, for every post including samples
+SAVED_PATH = DATA_DIR / "saved.json"       # posts saved to the library, newest first
 SAMPLES_DIR = Path(__file__).resolve().parent / "samples"   # pre-made public posts, checked in
 AUDIO_CACHE_DIR = DATA_DIR / "audio_cache"
 FRONTEND_DIR = ROOT / "frontend"

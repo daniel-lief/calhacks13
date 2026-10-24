@@ -24,5 +24,40 @@
   "finished_at": 1792875898.7724617,
   "logs": [],
   "public": true,
-  "sample": true
+  "sample": true,
+  "tags": [
+    "science",
+    "chemistry",
+    "why ice floats",
+    "water",
+    "ice",
+    "hydrogen bonds",
+    "density",
+    "icebergs",
+    "molecules",
+    "frozen lakes",
+    "states of matter"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "The puzzle"
+    },
+    {
+      "start": 21.1,
+      "title": "Water's bent shape"
+    },
+    {
+      "start": 43.53,
+      "title": "Liquid vs frozen"
+    },
+    {
+      "start": 64.33,
+      "title": "Open lattice density"
+    },
+    {
+      "start": 85.13,
+      "title": "Recap"
+    }
+  ]
 }

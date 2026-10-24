@@ -13,8 +13,10 @@ from pathlib import Path
 
 from . import config
 from .generator import GenerationError, SceneAuthor
+from .chapters import narration_segments, suggest_chapters
+from .tagger import narration_text, suggest_tags
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
-from .validate import check_scene, count_voiceovers, extract_title
+from .validate import check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
 
 ACTIVE_STATUSES = {"queued", "writing", "checking", "rendering", "reviewing"}
 MAX_LOG_ENTRIES = 300
@@ -49,6 +51,8 @@ class Job:
     updated_at: float = field(default_factory=time.time)
     finished_at: float | None = None
     logs: list[dict] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    chapters: list[dict] = field(default_factory=list)   # [{start, title}], from the narration
     public: bool = False        # shown in the feed once it's done
     sample: bool = False        # pre-made post from backend/samples (read-only)
 
@@ -65,6 +69,9 @@ class Job:
         data["captions_url"] = f"{media}/captions.vtt?v={int(self.updated_at)}" if self.has_captions else None
         data["thumbnail_url"] = f"{media}/thumbnail.jpg" if self.has_thumbnail else None
         data["code_url"] = f"{media}/scene.py" if (self.dir / "scene.py").exists() else None
+        # Narration lines with start/end times, for the transcript
+        data["timings_url"] = (f"{media}/timings.json?v={int(self.updated_at)}"
+                               if self.has_video and (self.dir / "timings.json").exists() else None)
         return data
 
 
@@ -80,9 +87,11 @@ class JobManager:
         self._pool = ThreadPoolExecutor(max_workers=config.MAX_CONCURRENT_JOBS,
                                         thread_name_prefix="job")
         self._stats: dict[str, dict] = {}
+        self._saved: list[str] = []
         self._load_existing()
         self._load_samples()
         self._load_stats()
+        self._load_saved()
 
     # --- store ---------------------------------------------------------------
 
@@ -123,6 +132,17 @@ class JobManager:
         tmp.write_text(json.dumps(self._stats), encoding="utf-8")
         tmp.replace(config.STATS_PATH)
 
+    def _load_saved(self):
+        try:
+            self._saved = [i for i in json.loads(config.SAVED_PATH.read_text(encoding="utf-8")) if i in self._jobs]
+        except (OSError, ValueError):
+            self._saved = []
+
+    def _write_saved(self):
+        tmp = config.SAVED_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(self._saved), encoding="utf-8")
+        tmp.replace(config.SAVED_PATH)
+
     def _save(self, job: Job):
         job.updated_at = time.time()
         job.dir.mkdir(parents=True, exist_ok=True)
@@ -151,19 +171,42 @@ class JobManager:
         return sorted((j for j in self._jobs.values() if j.public and j.status == "done" and j.has_video),
                       key=lambda j: j.created_at, reverse=True)
 
+    def saved(self) -> list[Job]:
+        """Posts saved to the library from the feed, most recently saved first."""
+        jobs = (self._jobs.get(i) for i in self._saved)
+        return [j for j in jobs if j and j.public and j.status == "done" and j.has_video]
+
     def serialize(self, job: Job, include_logs: bool = True) -> dict:
         data = job.to_dict(include_logs=include_logs)
         stats = self._stats.get(job.id, {})
         data["likes"] = stats.get("likes", 0)
         data["views"] = stats.get("views", 0)
+        data["saved"] = job.id in self._saved
         return data
 
-    def set_public(self, job_id: str, public: bool) -> Job | None:
+    def save(self, job_id: str, saved: bool) -> bool:
+        """Save a post to (or remove it from) the library. Only other people's posts can be saved."""
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job or not job.sample:
+                return False
+            if job_id in self._saved:
+                self._saved.remove(job_id)
+            if saved:
+                self._saved.insert(0, job_id)
+            self._write_saved()
+        return True
+
+    def update(self, job_id: str, *, public: bool | None = None, tags: list[str] | None = None) -> Job | None:
+        """Change a video's visibility and/or tags. Samples are read-only."""
         with self._lock:
             job = self._jobs.get(job_id)
             if not job or job.sample:
                 return None
-            job.public = public
+            if public is not None:
+                job.public = public
+            if tags is not None:
+                job.tags = clean_tags(tags)
             self._save(job)
         return job
 
@@ -198,6 +241,9 @@ class JobManager:
             del self._jobs[job_id]
             if self._stats.pop(job_id, None) is not None:
                 self._save_stats()
+            if job_id in self._saved:
+                self._saved.remove(job_id)
+                self._write_saved()
         shutil.rmtree(job.dir, ignore_errors=True)
         return True
 
@@ -239,7 +285,7 @@ class JobManager:
         self._update(job, status="writing", stage="Claude is planning the video…", progress=0.03,
                      log=f"Planning an explanation of “{job.topic}”")
         code = author.write(job.topic, opts.length, opts.extra)
-        self._update(job, title=extract_title(code), progress=0.25,
+        self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 
         code, render = self._build(job, author, code, budget=config.MAX_REPAIR_ATTEMPTS,
@@ -309,6 +355,11 @@ class JobManager:
         make_thumbnail(job.dir / "video.mp4", render.timings_path, job.dir / "thumbnail.jpg")
         self._update(job, has_video=True, has_captions=has_captions,
                      has_thumbnail=(job.dir / "thumbnail.jpg").exists(), title=extract_title(code))
+        if not job.tags:
+            tags = extract_tags(code) or suggest_tags(job.topic, job.title, narration_text(job.dir))
+            self._update(job, tags=tags)
+        # Rebuilt on every cut, since a re-render after review changes the timings
+        self._update(job, chapters=suggest_chapters(job.topic, job.title, narration_segments(job.dir)))
 
     def _review(self, job: Job, author: SceneAuthor, code: str):
         self._update(job, status="reviewing", stage="Claude is reviewing the frames…", progress=0.86,

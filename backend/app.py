@@ -26,11 +26,16 @@ class CreateJob(BaseModel):
 
 
 class UpdateJob(BaseModel):
-    public: bool
+    public: bool | None = None
+    tags: list[str] | None = Field(default=None, max_length=50)
 
 
 class Like(BaseModel):
     liked: bool
+
+
+class Save(BaseModel):
+    saved: bool
 
 
 @app.get("/api/health")
@@ -65,6 +70,11 @@ def feed():
     return [jobs.serialize(j, include_logs=False) for j in jobs.feed()]
 
 
+@app.get("/api/saved")
+def saved():
+    return [jobs.serialize(j, include_logs=False) for j in jobs.saved()]
+
+
 @app.get("/api/jobs/{job_id}")
 def get_job(job_id: str):
     job = jobs.get(job_id)
@@ -83,7 +93,7 @@ def delete_job(job_id: str):
 
 @app.patch("/api/jobs/{job_id}")
 def update_job(job_id: str, body: UpdateJob):
-    job = jobs.set_public(job_id, body.public)
+    job = jobs.update(job_id, public=body.public, tags=body.tags)
     if not job:
         raise HTTPException(404, "No such job, or it's a sample")
     return jobs.serialize(job, include_logs=False)
@@ -93,6 +103,13 @@ def update_job(job_id: str, body: UpdateJob):
 def like_job(job_id: str, body: Like):
     if not jobs.like(job_id, body.liked):
         raise HTTPException(404, "No such job")
+    return jobs.serialize(jobs.get(job_id), include_logs=False)
+
+
+@app.post("/api/jobs/{job_id}/save")
+def save_job(job_id: str, body: Save):
+    if not jobs.save(job_id, body.saved):
+        raise HTTPException(404, "No such post, or it's your own video")
     return jobs.serialize(jobs.get(job_id), include_logs=False)
 
 

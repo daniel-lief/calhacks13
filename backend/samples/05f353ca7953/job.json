@@ -24,5 +24,43 @@
   "finished_at": 1792876107.89125,
   "logs": [],
   "public": true,
-  "sample": true
+  "sample": true,
+  "tags": [
+    "physics",
+    "pendulum",
+    "how clocks work",
+    "timekeeping",
+    "galileo",
+    "pendulum period",
+    "escapement",
+    "clock",
+    "gravity",
+    "harmonic motion"
+  ],
+  "chapters": [
+    {
+      "start": 0.0,
+      "title": "Intro"
+    },
+    {
+      "start": 9.63,
+      "title": "Galileo's discovery"
+    },
+    {
+      "start": 22.13,
+      "title": "The period formula"
+    },
+    {
+      "start": 57.67,
+      "title": "Losing energy"
+    },
+    {
+      "start": 67.7,
+      "title": "The escapement"
+    },
+    {
+      "start": 91.87,
+      "title": "Recap"
+    }
+  ]
 }

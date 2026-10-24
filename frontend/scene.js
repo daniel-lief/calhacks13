@@ -17,7 +17,7 @@
     return;
   }
 
-  const COUNT = innerWidth < 800 ? 18000 : 32000;
+  const COUNT = innerWidth < 800 ? 27000 : 48000;
   const FADE = 0.35;      // fraction of a viewport over which shape labels fade
 
   let W = 0, H = 0, dpr = 1;
@@ -268,7 +268,7 @@
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-  gl.clearColor(0x22 / 255, 0x21 / 255, 0x24 / 255, 1);
+  gl.clearColor(0x1a / 255, 0x19 / 255, 0x1c / 255, 1);
 
   function upload(name) {
     if (!buffers[name]) buffers[name] = gl.createBuffer();
