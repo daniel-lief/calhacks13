@@ -11,7 +11,7 @@
 
 const wv = {
   video: $("#watch-video"), title: $("#watch-title"), meta: $("#watch-meta"), actions: $("#watch-actions"),
-  tags: $("#watch-tags"), prompt: $("#watch-prompt"), owner: $("#watch-owner"), chapters: $("#watch-chapters"),
+  tags: $("#watch-tags"), prompt: $("#watch-prompt"), voice: $("#watch-voice"), owner: $("#watch-owner"), chapters: $("#watch-chapters"),
   publicToggle: $("#watch-public"), editTags: $("#watch-edit-tags"), toggleCode: $("#watch-toggle-code"),
   download: $("#watch-download"), remove: $("#watch-delete"),
   tagForm: $("#watch-tag-form"), tagInput: $("#watch-tag-input"), tagCancel: $("#watch-tag-cancel"),
@@ -99,6 +99,7 @@ function renderWatch(job) {
   wv.title.textContent = job.title || job.topic;
   wv.meta.textContent = `${author(job)} - ${timeAgo(job.created_at)} - ${plural(job.views || 0, "view")}`;
   wv.prompt.textContent = `Prompt: ${job.topic}`;
+  wv.voice.textContent = job.options?.narration === false ? "No narration" : `Narrated by ${job.voice_name}`;
   wv.tags.replaceChildren(...topTags(job).map((t) => {
     const link = document.createElement("a");
     link.className = "chip";

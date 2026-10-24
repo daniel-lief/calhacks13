@@ -15,6 +15,7 @@ from . import config
 from .generator import GenerationError, SceneAuthor
 from .chapters import narration_segments, suggest_chapters
 from .tagger import narration_text, suggest_tags
+from .voices import voice_name
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
 from .validate import check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
 
@@ -27,6 +28,7 @@ class JobOptions:
     length: str = "medium"      # short | medium | long
     quality: str = "medium"     # low | medium | high
     narration: bool = True
+    voice: str = ""             # edge-tts voice name; "" means the server default (TTS_VOICE)
     review: bool = True
     extra: str = ""
 
@@ -179,6 +181,7 @@ class JobManager:
     def serialize(self, job: Job, include_logs: bool = True) -> dict:
         data = job.to_dict(include_logs=include_logs)
         stats = self._stats.get(job.id, {})
+        data["voice_name"] = voice_name(job.options.voice)
         data["likes"] = stats.get("likes", 0)
         data["views"] = stats.get("views", 0)
         data["saved"] = job.id in self._saved
@@ -326,6 +329,7 @@ class JobManager:
                              log=f"Attempt {n}: rendering at {job.options.quality} quality")
                 render = render_scene(scene_path, job.dir / "work" / f"render_v{n}",
                                       quality=job.options.quality, narration=job.options.narration,
+                                      voice=job.options.voice,
                                       on_segment=on_segment)
                 for w in render.warnings:
                     self._update(job, log=w, kind="warning")
