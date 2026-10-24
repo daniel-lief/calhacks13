@@ -1,10 +1,12 @@
 """HTTP API and static frontend."""
 from __future__ import annotations
 
+import hashlib
+import re
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -128,4 +130,14 @@ app.mount("/static", StaticFiles(directory=config.FRONTEND_DIR), name="static")
 
 @app.get("/")
 def index():
-    return FileResponse(config.FRONTEND_DIR / "index.html")
+    # Keep the HTML and its scripts/styles from different pulls from mixing in a
+    # long-lived browser tab. Unchanged assets retain the same cacheable URL.
+    html = (config.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+
+    def version_asset(match):
+        path = config.FRONTEND_DIR / match.group(1)
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+        return f"/static/{match.group(1)}?v={digest}"
+
+    html = re.sub(r'/static/([\w.-]+\.(?:js|css))(?=["\'])', version_asset, html)
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
