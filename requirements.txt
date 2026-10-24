@@ -1,0 +1,43 @@
+# Engine: the local ./manimlib copy (3b1b/manim master); these are its dependencies
+addict
+appdirs
+audioop-lts; python_version>='3.13'
+av
+colour
+diskcache
+ipython>=8.18.0
+isosurfaces
+fontTools
+glfw
+manimpango>=0.6.0
+matplotlib
+numpy
+Pillow
+pydub
+pygments
+pyperclip
+pywavefront
+pyyaml
+rendercanvas
+rich
+scipy
+setuptools
+skia-pathops
+svgelements>=1.8.1
+sympy
+trimesh
+tqdm
+validators
+wgpu
+
+# Animai subject libraries
+rdkit        # chemistry: molecule structures and 3D geometry
+pymunk       # physics: rigid-body simulation
+networkx     # computer science: graph layouts
+
+# Web app
+anthropic>=2.3.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-dotenv>=1.0
+edge-tts>=7.0

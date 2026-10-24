@@ -1,0 +1,52 @@
+from animai import *
+
+
+class PhysicsDemo(AnimaiScene):
+    def construct(self):
+        self.set_title("Rigid-body simulation")
+        world = PhysicsWorld()
+        world.add_ground(-2.5)
+        world.add_ramp((-6, 1.5), (-1.5, -2.5))
+        ball = world.add_ball((-5.5, 2.2), radius=0.3, elasticity=0.7)
+        world.add_box((2, 1), width=0.8, height=0.8, angle=0.3)
+        world.add_box((2.2, 3), width=0.6, height=0.6)
+        self.show(world, "main")
+        self.add(world.trace(ball))
+        self.play(world.simulate(4))
+
+        self.fade_out_all()
+        self.set_title("Pendulum and spring")
+        pend = Pendulum(length=2.5, angle=50 * DEG)
+        ms = MassSpring(k=6, mass=1, amplitude=1.0)
+        self.show(pend, "left")
+        self.show(ms, "right")
+        self.add(pend.angle_arc())
+        self.play(pend.swing(3), ms.oscillate(3))
+
+        self.fade_out_all()
+        self.set_title("Forces and projectiles")
+        fbd = FreeBodyDiagram({"mg": DOWN * 1.6, "N": UP * 1.6, "F": RIGHT * 1.4, "f": LEFT * 0.6})
+        self.show(fbd, "left", animation=fbd.build())
+        self.play(fbd.net_force())
+        proj = Projectile(v0=7, angle=55 * DEG)
+        self.show(proj, "right")
+        self.play(proj.launch())
+
+        self.fade_out_all()
+        self.set_title("Waves")
+        w1 = Wave(amplitude=0.6, wavelength=3, speed=1.5)
+        self.show(w1, "top")
+        w2 = Wave(amplitude=0.6, wavelength=3, speed=1.5, standing=True, color=get_theme().secondary)
+        self.show(w2, "bottom")
+        self.play(w1.propagate(2), w2.propagate(2))
+
+        self.fade_out_all()
+        self.set_title("Optics, circuits, fields")
+        lens = LensDiagram(focal_length=1.5, object_distance=4, object_height=1)
+        self.show(lens, "top_left", animation=lens.build())
+        circuit = SimpleCircuit(["battery", ("resistor", "10 Ω"), "bulb", "switch"])
+        self.show(circuit, "top_right")
+        self.play(circuit.flow(2))
+        field = FieldLines([((-1.5, 0), 1), ((1.5, 0), -1)])
+        self.show(field, "bottom", animation=field.build())
+        self.wait()
