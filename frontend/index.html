@@ -142,6 +142,7 @@
           <div class="watch-details">
             <div class="tag-list t-16" id="watch-tags"></div>
             <p class="t-16 muted" id="watch-prompt"></p>
+            <p class="t-16 muted" id="watch-voice"></p>
             <ol class="chapter-list t-16" id="watch-chapters" aria-label="Chapters"></ol>
             <div class="watch-owner t-16" id="watch-owner" hidden>
               <button id="watch-public" type="button" class="link-button caps"></button>
@@ -206,6 +207,10 @@
               <label><input type="checkbox" name="public" checked><span>Post to the feed</span></label>
               <label><input type="checkbox" name="narration" checked><span>Voice narration</span></label>
               <label><input type="checkbox" name="review" checked><span>Visual review pass</span></label>
+            </fieldset>
+            <fieldset class="wide">
+              <legend class="muted caps">Voice</legend>
+              <div class="voice-grid" id="voice-grid"></div>
             </fieldset>
             <fieldset class="wide">
               <legend class="muted caps">Guidance</legend>

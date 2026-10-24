@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from . import config
 from .jobs import JobManager, JobOptions
+from .voices import VOICE_IDS, VOICES, default_voice, preview_path
 
 app = FastAPI(title="Explainer")
 jobs = JobManager()
@@ -25,6 +26,7 @@ class CreateJob(BaseModel):
     review: bool = True
     extra: str = Field(default="", max_length=1000)
     public: bool = True
+    voice: str = ""
 
 
 class UpdateJob(BaseModel):
@@ -38,6 +40,21 @@ class Like(BaseModel):
 
 class Save(BaseModel):
     saved: bool
+
+
+@app.get("/api/voices")
+def voices():
+    return {"default": default_voice(), "voices": VOICES}
+
+
+@app.get("/api/voices/{voice_id}/preview")
+def voice_preview(voice_id: str):
+    if voice_id not in VOICE_IDS:
+        raise HTTPException(404, "No such voice")
+    try:
+        return FileResponse(preview_path(voice_id), media_type="audio/mpeg")
+    except Exception as exc:  # The free voice service fails now and then
+        raise HTTPException(503, f"Couldn't make a preview right now: {exc}") from exc
 
 
 @app.get("/api/health")
@@ -54,10 +71,12 @@ def health():
 
 @app.post("/api/jobs", status_code=201)
 def create_job(body: CreateJob):
+    if body.voice and body.voice not in VOICE_IDS:
+        raise HTTPException(422, "Unknown voice")
     topic = " ".join(body.topic.split())
     job = jobs.create(topic, JobOptions(
         length=body.length, quality=body.quality, narration=body.narration,
-        review=body.review, extra=body.extra.strip(),
+        review=body.review, extra=body.extra.strip(), voice=body.voice,
     ), public=body.public)
     return jobs.serialize(job)
 

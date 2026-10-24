@@ -37,7 +37,7 @@ function route() {
   if (previous === "watch" && r.screen !== "watch") leaveReel();
   if (previous === "video" && r.screen !== "video") leaveVideo();
   if (previous === "library" && r.screen !== "library") leaveLibrary();
-  if (previous === "create" && r.screen !== "create") stopJob();
+  if (previous === "create" && r.screen !== "create") { stopJob(); stopPreview(); }
 
   screen = r.screen;
   if (!screen) {
@@ -141,6 +141,7 @@ $("#monogram").addEventListener("click", (e) => {
 splitText();
 customCursor();
 renderExamples();
+loadVoices();
 checkHealth().then(showHealthBanner);
 route();
 loadMarquee();

@@ -69,6 +69,7 @@ def render_scene(
     quality: str = "medium",
     dry_run: bool = False,
     narration: bool = True,
+    voice: str = "",
     on_segment: Callable[[int], None] | None = None,
 ) -> RenderResult:
     """
@@ -95,7 +96,7 @@ def render_scene(
         "PYTHONUNBUFFERED": "1",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONWARNINGS": "ignore",
-        "ANIMAI_VOICE": config.TTS_VOICE,
+        "ANIMAI_VOICE": voice or config.TTS_VOICE,
         "ANIMAI_AUDIO_CACHE": str(config.AUDIO_CACHE_DIR),
         "ANIMAI_TIMINGS": str(timings),
     })

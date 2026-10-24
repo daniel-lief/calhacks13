@@ -19,7 +19,7 @@ const POLL_MS = 1500;
 
 const el = {
   form: $("#form"), topic: $("#topic"), submit: $("#submit"), examples: $("#examples"),
-  toggleOptions: $("#toggle-options"), options: $("#options"), banner: $("#banner"),
+  toggleOptions: $("#toggle-options"), options: $("#options"), banner: $("#banner"), voiceGrid: $("#voice-grid"),
   job: $("#job"), jobTopic: $("#job-topic"), jobTitle: $("#job-title"), elapsed: $("#job-elapsed"),
   steps: $("#steps"), progressWrap: $("#progress-wrap"), progressBar: $("#progress-bar"), stage: $("#job-stage"),
   player: $("#player"), video: $("#video"), download: $("#download"), togglePublic: $("#toggle-public"),
@@ -53,6 +53,57 @@ function renderExamples() {
   });
 }
 
+// --- Voices ------------------------------------------------------------------
+
+const voicePreview = new Audio();
+let previewing = null;   // the preview button whose sample is playing
+
+async function loadVoices() {
+  let data;
+  try { data = await api("/api/voices"); } catch { return; }
+  el.voiceGrid.replaceChildren(...data.voices.map((v) => {
+    const card = document.createElement("label");
+    card.className = "voice-card";
+    const input = document.createElement("input");
+    Object.assign(input, { type: "radio", name: "voice", value: v.id, checked: v.id === data.default });
+    const text = document.createElement("span");
+    text.className = "voice-text";
+    text.innerHTML = `<span class="voice-name"></span><span class="voice-meta"></span>`;
+    text.firstChild.textContent = v.name;
+    text.lastChild.textContent = `${v.accent} - ${v.description}`;
+    const play = document.createElement("button");
+    play.type = "button";
+    play.className = "voice-play link-button muted";
+    play.textContent = "Play sample";
+    play.setAttribute("aria-label", `Play a sample of ${v.name}`);
+    play.addEventListener("click", (e) => {
+      e.preventDefault();   // previewing doesn't pick the voice
+      togglePreview(play, v.id);
+    });
+    card.append(input, text, play);
+    return card;
+  }));
+}
+
+function togglePreview(button, voiceId) {
+  const same = previewing === button;
+  stopPreview();
+  if (same) return;
+  previewing = button;
+  button.textContent = "Loading";
+  voicePreview.src = `/api/voices/${encodeURIComponent(voiceId)}/preview`;
+  voicePreview.play()
+    .then(() => { if (previewing === button) button.textContent = "Stop"; })
+    .catch(() => { if (previewing === button) { button.textContent = "Couldn't play"; previewing = null; } });
+}
+
+function stopPreview() {
+  voicePreview.pause();
+  if (previewing) previewing.textContent = "Play sample";
+  previewing = null;
+}
+voicePreview.addEventListener("ended", stopPreview);
+
 function showHealthBanner(h) {
   const problems = [];
   if (!h) problems.push("The server isn't responding. Start it with <code>.venv\\Scripts\\python -m backend</code>.");
@@ -81,6 +132,7 @@ function formPayload() {
     narration: fd.get("narration") === "on",
     review: fd.get("review") === "on",
     public: fd.get("public") === "on",
+    voice: fd.get("voice") || "",
     extra: (fd.get("extra") || "").trim(),
   };
 }
@@ -108,6 +160,7 @@ el.form.addEventListener("submit", (e) => {
 
 function showComposer() {
   stopJob();
+  stopPreview();
   el.job.hidden = true;
   el.form.hidden = false;
   el.topic.focus({ preventScroll: true });
@@ -116,6 +169,7 @@ function showComposer() {
 function showJob(id) {
   if (current?.id === id && pollTimer) return;
   stopJob();
+  stopPreview();
   renderedLogCount = 0;
   loadedVideoUrl = null;
   codeLoadedFor = null;
