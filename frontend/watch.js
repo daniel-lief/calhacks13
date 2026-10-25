@@ -11,7 +11,8 @@
 
 const wv = {
   video: $("#watch-video"), title: $("#watch-title"), meta: $("#watch-meta"), actions: $("#watch-actions"),
-  tags: $("#watch-tags"), prompt: $("#watch-prompt"), voice: $("#watch-voice"), owner: $("#watch-owner"), chapters: $("#watch-chapters"),
+  tags: $("#watch-tags"), owner: $("#watch-owner"), chapters: $("#watch-chapters"),
+  visibility: $("#watch-visibility"), visibilityHint: $("#watch-visibility-hint"), ownerTags: $("#watch-owner-tags"),
   publicToggle: $("#watch-public"), editTags: $("#watch-edit-tags"), toggleCode: $("#watch-toggle-code"),
   download: $("#watch-download"), remove: $("#watch-delete"),
   tagForm: $("#watch-tag-form"), tagInput: $("#watch-tag-input"), tagCancel: $("#watch-tag-cancel"),
@@ -19,6 +20,8 @@ const wv = {
   transcriptWrap: $("#watch-transcript-wrap"), transcript: $("#watch-transcript"),
   upNext: $("#up-next"), missing: $("#watch-missing"), layout: $("#screen-video .watch"),
 };
+
+wv.remove.innerHTML = TRASH;
 
 const watchPlayer = enhancePlayer(wv.video);
 
@@ -120,18 +123,15 @@ function renderChapterList(job) {
 function renderWatch(job) {
   wv.title.textContent = job.title || job.topic;
   wv.meta.textContent = `${author(job)} - ${timeAgo(job.created_at)} - ${plural(job.views || 0, "view")}`;
-  wv.prompt.textContent = `Prompt: ${job.topic}`;
-  if (job.options?.narration === false) wv.voice.textContent = "No narration";
-  else voiceName(job.voice).then((name) => { wv.voice.textContent = `Narrated by ${name}`; });
   wv.tags.replaceChildren(...topTags(job).map((t) => {
     const link = document.createElement("a");
     link.className = "chip";
-    link.href = `#/feed?tag=${encodeURIComponent(t)}`;
+    link.href = `#/discover?tag=${encodeURIComponent(t)}`;
     link.textContent = t;
     return link;
   }));
 
-  // Like, save, and a way over to the vertical view
+  // Like and save stay beside the video metadata.
   const like = document.createElement("button");
   like.type = "button";
   like.className = "watch-action";
@@ -151,24 +151,21 @@ function renderWatch(job) {
   });
   const actions = [like];
   if (canSave(job)) actions.push(saveToggle(job, "watch-action"));
-  if (job.public) {
-    const vertical = document.createElement("a");
-    vertical.className = "watch-action";
-    vertical.href = `#/watch/${job.id}`;
-    vertical.textContent = "Watch in Scroll";
-    actions.push(vertical);
-  }
   wv.actions.replaceChildren(...actions);
 
-  // Controls for your own videos
+  // Source and download belong to every video's description.
+  wv.toggleCode.hidden = !job.code_url;
+  wv.toggleCode.textContent = wv.code.hidden ? "View code" : "Hide code";
+  wv.download.href = job.video_url;
+  wv.download.download = `${slug(job.title || job.topic)}.mp4`;
+
+  // Management lives in its own box, only for your videos.
   wv.owner.hidden = !job.ownedByMe;
   if (job.ownedByMe) {
-    wv.publicToggle.textContent = job.public ? "Public" : "Private";
-    wv.publicToggle.title = job.public ? "Shown in the feed. Click to make private." : "Only in your library. Click to post to the feed.";
-    wv.toggleCode.hidden = !job.code_url;
-    wv.toggleCode.textContent = wv.code.hidden ? "View code" : "Hide code";
-    wv.download.href = job.video_url;
-    wv.download.download = `${slug(job.title || job.topic)}.mp4`;
+    wv.visibility.textContent = job.public ? "Public" : "Private";
+    wv.visibilityHint.textContent = job.public ? "Visible to everyone on Discover." : "Only visible in your library.";
+    wv.publicToggle.textContent = job.public ? "Make private" : "Make public";
+    wv.ownerTags.textContent = (job.tags || []).join(", ") || "No tags yet.";
   }
 }
 
@@ -218,13 +215,16 @@ function upNextItem(job) {
 
 wv.publicToggle.addEventListener("click", async () => {
   const job = watching?.job;
-  if (!job) return;
+  if (!job || !job.ownedByMe || wv.publicToggle.disabled) return;
+  wv.publicToggle.disabled = true;
   try {
     await call("mutation", "videos:setPublic", { id: job.id, public: !job.public });  // the live query re-renders
   } catch (err) { alert(err.message); }
+  finally { wv.publicToggle.disabled = false; }
 });
 
 wv.editTags.addEventListener("click", () => {
+  if (!watching || !watching.job.ownedByMe) return;
   wv.tagInput.value = (watching?.job.tags || []).join(", ");
   wv.tagForm.hidden = false;
   wv.tagInput.focus();
@@ -234,7 +234,7 @@ wv.tagInput.addEventListener("keydown", (e) => { if (e.key === "Escape") wv.tagF
 wv.tagForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const job = watching?.job;
-  if (!job) return;
+  if (!job || !job.ownedByMe) return;
   const tags = wv.tagInput.value.split(",").map((t) => t.trim()).filter(Boolean);
   try {
     await call("mutation", "videos:setTags", { id: job.id, tags });
@@ -268,7 +268,7 @@ wv.copyCode.addEventListener("click", async () => {
 
 wv.remove.addEventListener("click", async () => {
   const job = watching?.job;
-  if (!job || !confirm(`Delete “${job.title || job.topic}”?`)) return;
+  if (!job || !job.ownedByMe || !confirm(`Delete “${job.title || job.topic}”?`)) return;
   try {
     stopWatching?.();
     await call("mutation", "videos:remove", { id: job.id });

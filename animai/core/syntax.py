@@ -13,3 +13,21 @@ class FigmaCodeStyle(Style):
         Number: "#BE9931", String: "#BE9931", Comment: "#9D8084",
         Operator: "#000000", Operator.Word: "#E45E7F", Punctuation: "#000000",
     }
+
+
+def style_for_theme(theme):
+    """Keep the same syntax categories and typography while recoloring all tokens."""
+    plain, keyword, function, literal = (
+        theme.code_text, theme.code_keyword, theme.code_function, theme.code_literal,
+    )
+    return type("AnimaiPaletteStyle", (Style,), {
+        "background_color": theme.surface,
+        "default_style": "",
+        "styles": {
+            Token: plain, Text: plain, Whitespace: plain,
+            Keyword: keyword, Keyword.Constant: literal,
+            Name: plain, Name.Builtin: function, Name.Function: function,
+            Number: literal, String: literal, Comment: theme.muted,
+            Operator: plain, Operator.Word: keyword, Punctuation: plain,
+        },
+    })

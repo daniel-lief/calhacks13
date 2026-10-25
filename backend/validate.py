@@ -24,6 +24,53 @@ ALLOWED_DUNDERS = {"__init__", "__name__"}
 CODE_BLOCK_RE = re.compile(r"```(?:python|py)?[ \t]*\n(.*?)```", re.DOTALL)
 
 
+def apply_scene_theme(code: str, theme: str) -> str:
+    """Pin generated/downloadable source to the chosen palette without reformatting it.
+
+    Invalid syntax is left for the existing checker/repair loop. AST byte offsets
+    preserve Unicode, comments, future imports and statements sharing a line.
+    """
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return code
+    data = code.encode("utf-8")
+    lines = data.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+    replacements = []
+    for node in tree.body:
+        targets = node.targets if isinstance(node, ast.Assign) else (
+            [node.target] if isinstance(node, ast.AnnAssign) else [])
+        if not any(isinstance(t, ast.Name) and t.id == "THEME" for t in targets):
+            continue
+        if node.value is not None:
+            value = node.value
+            replacements.append((offsets[value.lineno - 1] + value.col_offset,
+                                 offsets[value.end_lineno - 1] + value.end_col_offset,
+                                 repr(theme).encode("utf-8")))
+        else:
+            at = offsets[node.end_lineno - 1] + node.end_col_offset
+            replacements.append((at, at, (" = " + repr(theme)).encode("utf-8")))
+    if replacements:
+        for start, end, text in sorted(replacements, reverse=True):
+            data = data[:start] + text + data[end:]
+        return data.decode("utf-8")
+    after = 0
+    for i, node in enumerate(tree.body):
+        if ((i == 0 and isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
+             and isinstance(node.value.value, str))
+                or (isinstance(node, ast.ImportFrom) and node.module == "__future__")):
+            after = offsets[node.end_lineno]
+        else:
+            break
+    prefix = data[:after]
+    if prefix and not prefix.endswith(b"\n"):
+        prefix += b"\n"
+    return (prefix + f"THEME = {theme!r}\n".encode("utf-8") + data[after:]).decode("utf-8")
+
+
 def extract_code(reply: str) -> str | None:
     """Return the last fenced Python block in a model reply."""
     blocks = CODE_BLOCK_RE.findall(reply)

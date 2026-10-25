@@ -1,10 +1,9 @@
 "use strict";
 
-// Routing between the landing page and the app screens, plus the landing
-// page's marquee of feed posts.
+// Routing between the landing story and the app screens.
 //
 //   #/            landing (scroll story)      #/watch[/id]  vertical scroller
-//   #/feed        feed grid                   #/video/<id>  one video, 16:9 watch page
+//   #/discover    public video grid           #/video/<id>  one video, 16:9 watch page
 //   #/library     your videos                 #/create      new video
 //                                             #/v/<id>      progress of a video you're making
 
@@ -24,7 +23,7 @@ function parseRoute() {
   if ((m = h.match(/^#\/watch(?:\/([\w-]+))?/))) return { screen: "watch", id: m[1] };
   if ((m = h.match(/^#\/video\/([\w-]+)/))) return { screen: "video", id: m[1] };
   if ((m = h.match(/^#\/v\/([\w-]+)/))) return { screen: "create", id: m[1] };
-  if (h.startsWith("#/feed")) return { screen: "feed" };
+  if (h.startsWith("#/discover") || h.startsWith("#/feed")) return { screen: "feed" };
   if (h.startsWith("#/create")) return { screen: "create" };
   if (h.startsWith("#/library")) return { screen: "library" };
   return { screen: null };
@@ -45,7 +44,7 @@ function route() {
     landing.hidden = false;
     window.Scene.landing();
     if (previous) {
-      layoutPlayground();
+      window.Scene.refresh();
       window.scrollTo(0, location.hash === "#start" ? document.documentElement.scrollHeight : 0);
     }
     return;
@@ -68,7 +67,7 @@ function route() {
   else if (screen === "create") r.id ? showJob(r.id) : showComposer();
   else if (screen === "library") showLibrary();
 
-  // Let the screen lay out before the particles measure it
+  // Keep the decorative background in sync with the active screen.
   requestAnimationFrame(() => window.Scene.show(SCENE_SHAPE[screen]));
 }
 window.addEventListener("hashchange", route);
@@ -79,64 +78,6 @@ onAuthChange(() => {
   if (screen === "feed") showFeed();
   else if (screen === "library") showLibrary();
 });
-
-// --- Landing marquee ---------------------------------------------------------
-
-const mq = {
-  playground: $("#playground"), track: $("#marquee"), kicker: $("#kicker"), closing: $("#closing"),
-  markerFlat: $("#marker-flat"), markerLoops: $("#marker-loops"),
-};
-let travel = 0;
-
-async function loadMarquee() {
-  const posts = await loadFeed();
-  mq.track.replaceChildren(...posts.map(marqueeTile));
-  mq.closing.textContent = posts.length ? "And room for plenty more." : "The first videos will show up here.";
-  mq.kicker.hidden = posts.length === 0;
-  layoutPlayground();
-}
-
-function marqueeTile(job) {
-  const a = document.createElement("a");
-  a.className = "tile";
-  a.href = `#/video/${job.id}`;
-  const media = document.createElement("div");
-  media.className = "tile-media";
-  if (job.thumbnail_url) media.style.backgroundImage = `url("${job.thumbnail_url}")`;
-  const caption = document.createElement("div");
-  caption.className = "caption";
-  const title = document.createElement("p");
-  title.className = "t-20";
-  title.textContent = job.title || job.topic;
-  caption.append(title, statsLine(job));
-  a.append(media, caption);
-  return a;
-}
-
-// The playground is tall; while it scrolls past, the track slides right to left,
-// then the closing line takes over. Its height depends on how many posts there are.
-function layoutPlayground() {
-  if (landing.hidden) return;
-  const vh = innerHeight;
-  travel = mq.track.children.length ? mq.track.scrollWidth + innerWidth : 0;
-  mq.playground.style.height = `${travel + vh * 2}px`;
-  mq.markerFlat.style.top = `${travel / 2 + vh / 2}px`;
-  mq.markerFlat.hidden = travel === 0;
-  mq.markerLoops.style.top = `${travel + vh * 1.1}px`;
-  window.Scene.refresh();
-  updatePlayground();
-}
-
-function updatePlayground() {
-  if (landing.hidden) return;
-  const offset = -mq.playground.getBoundingClientRect().top;
-  mq.track.style.transform = `translate(${innerWidth - Math.max(0, Math.min(travel, offset))}px, -50%)`;
-  mq.kicker.dataset.active = String(offset > -innerHeight * 0.2 && offset < travel);
-  mq.closing.dataset.active = String(offset > travel + innerHeight * 0.25 && offset < travel + innerHeight * 1.4);
-}
-
-addEventListener("scroll", updatePlayground, { passive: true });
-addEventListener("resize", layoutPlayground);
 
 $("#monogram").addEventListener("click", (e) => {
   e.preventDefault();
@@ -149,7 +90,6 @@ splitText();
 customCursor();
 renderExamples();
 loadVoices();
+loadThemes();
 checkHealth().then(showHealthBanner);
 route();
-loadMarquee();
-preload(!screen);

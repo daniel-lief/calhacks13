@@ -1,0 +1,254 @@
+[
+  {
+    "id": "bubble",
+    "name": "Peach",
+    "description": "The original warm pastel palette.",
+    "colors": {
+      "background": "#F5D9C8",
+      "backdrop_color": "#FEEAE0",
+      "surface": "#FBF5F2",
+      "text": "#583F41",
+      "muted": "#9D8084",
+      "outline": "#D9D9D9",
+      "primary": "#A6C7EA",
+      "secondary": "#ECD288",
+      "accent": "#EF7D99",
+      "positive": "#AAD9B0",
+      "negative": "#F0B3BC",
+      "land": "#E8EDCC",
+      "shadow": "#000000",
+      "pill": "#F8E1E5",
+      "on_color": "#EFEDE7",
+      "palette": [
+        "#ECD288",
+        "#F0B3BC",
+        "#A6C7EA",
+        "#F1C29D",
+        "#C7B6ED",
+        "#AAD9B0"
+      ],
+      "land_border": "#FBF5F2",
+      "baseline": "#D9D9D9",
+      "decorative": [
+        "#D9D9D9",
+        "#FDDFAB",
+        "#E8EDCC",
+        "#FCDDA8"
+      ],
+      "code_text": "#000000",
+      "code_keyword": "#E45E7F",
+      "code_function": "#3186E1",
+      "code_literal": "#BE9931"
+    }
+  },
+  {
+    "id": "ocean",
+    "name": "Ocean",
+    "description": "Cool blues with sea-glass accents.",
+    "colors": {
+      "background": "#DCEAF5",
+      "backdrop_color": "#F1F8FC",
+      "surface": "#F8FCFF",
+      "text": "#304C62",
+      "muted": "#718A9C",
+      "outline": "#C8D9E6",
+      "primary": "#8BBDE5",
+      "secondary": "#E5C586",
+      "accent": "#5498C6",
+      "positive": "#91CCBA",
+      "negative": "#E9AFBC",
+      "land": "#CBE4D8",
+      "shadow": "#173B54",
+      "pill": "#E2EFF8",
+      "on_color": "#F8FCFF",
+      "palette": [
+        "#E5C586",
+        "#E9AFBC",
+        "#8BBDE5",
+        "#E9C7A6",
+        "#B8B8E4",
+        "#91CCBA"
+      ],
+      "land_border": "#F8FCFF",
+      "baseline": "#C8D9E6",
+      "decorative": [
+        "#C8D9E6",
+        "#E9D6A4",
+        "#CBE4D8",
+        "#BEDEEC"
+      ],
+      "code_text": "#304C62",
+      "code_keyword": "#B65F89",
+      "code_function": "#367CB2",
+      "code_literal": "#9D7B2E"
+    }
+  },
+  {
+    "id": "meadow",
+    "name": "Meadow",
+    "description": "Fresh greens and soft botanical tones.",
+    "colors": {
+      "background": "#DDEBDD",
+      "backdrop_color": "#F2F7EB",
+      "surface": "#FCFDF6",
+      "text": "#3F5145",
+      "muted": "#7D8E78",
+      "outline": "#CDD9C5",
+      "primary": "#A7C994",
+      "secondary": "#E5CC88",
+      "accent": "#759C68",
+      "positive": "#90C8AA",
+      "negative": "#DFAEA8",
+      "land": "#C8DBB8",
+      "shadow": "#2D4732",
+      "pill": "#E7EFD8",
+      "on_color": "#FCFDF6",
+      "palette": [
+        "#E5CC88",
+        "#DFAEA8",
+        "#A7C994",
+        "#E1C3A0",
+        "#C4BDDB",
+        "#90C8AA"
+      ],
+      "land_border": "#FCFDF6",
+      "baseline": "#CDD9C5",
+      "decorative": [
+        "#CDD9C5",
+        "#E5DCB1",
+        "#C8DBB8",
+        "#D8E8CC"
+      ],
+      "code_text": "#3F5145",
+      "code_keyword": "#9B6487",
+      "code_function": "#567EA2",
+      "code_literal": "#9B7F35"
+    }
+  },
+  {
+    "id": "lavender",
+    "name": "Lavender",
+    "description": "Soft purples with lilac highlights.",
+    "colors": {
+      "background": "#E6DDF2",
+      "backdrop_color": "#F8F2FC",
+      "surface": "#FCF9FF",
+      "text": "#4D405C",
+      "muted": "#8F7E9F",
+      "outline": "#D8CEE4",
+      "primary": "#B9A5DE",
+      "secondary": "#E4CD97",
+      "accent": "#9C79BE",
+      "positive": "#A8CCB5",
+      "negative": "#E5B0C3",
+      "land": "#DDD6EB",
+      "shadow": "#433351",
+      "pill": "#EEE5F7",
+      "on_color": "#FCF9FF",
+      "palette": [
+        "#E4CD97",
+        "#E5B0C3",
+        "#B9A5DE",
+        "#E8C3AF",
+        "#B2C7E4",
+        "#A8CCB5"
+      ],
+      "land_border": "#FCF9FF",
+      "baseline": "#D8CEE4",
+      "decorative": [
+        "#D8CEE4",
+        "#E9DAB4",
+        "#D5E4D3",
+        "#E3D1ED"
+      ],
+      "code_text": "#4D405C",
+      "code_keyword": "#A7679C",
+      "code_function": "#697DB5",
+      "code_literal": "#9B7D39"
+    }
+  },
+  {
+    "id": "rose",
+    "name": "Rose",
+    "description": "Blush backgrounds and berry accents.",
+    "colors": {
+      "background": "#F1DCE1",
+      "backdrop_color": "#FCF1F1",
+      "surface": "#FFFAF8",
+      "text": "#65434B",
+      "muted": "#A18089",
+      "outline": "#E4CDD3",
+      "primary": "#B3C9E1",
+      "secondary": "#E8D296",
+      "accent": "#C77E94",
+      "positive": "#AACDBB",
+      "negative": "#E5ACB7",
+      "land": "#E1E5CA",
+      "shadow": "#5C3442",
+      "pill": "#F5E3E9",
+      "on_color": "#FFFAF8",
+      "palette": [
+        "#E8D296",
+        "#E5ACB7",
+        "#B3C9E1",
+        "#E8BDA7",
+        "#CEB9DF",
+        "#AACDBB"
+      ],
+      "land_border": "#FFFAF8",
+      "baseline": "#E4CDD3",
+      "decorative": [
+        "#E4CDD3",
+        "#F0DBB3",
+        "#E1E5CA",
+        "#EAC8D7"
+      ],
+      "code_text": "#65434B",
+      "code_keyword": "#B46280",
+      "code_function": "#5C87AD",
+      "code_literal": "#A18036"
+    }
+  },
+  {
+    "id": "sand",
+    "name": "Sand",
+    "description": "Warm neutrals and earthy pastel accents.",
+    "colors": {
+      "background": "#EBE4D8",
+      "backdrop_color": "#F8F4EB",
+      "surface": "#FEFCF6",
+      "text": "#5D4E3E",
+      "muted": "#93836D",
+      "outline": "#DCD2C0",
+      "primary": "#ABC7C0",
+      "secondary": "#D9BE82",
+      "accent": "#BD8D67",
+      "positive": "#A9C2A0",
+      "negative": "#D7A8A2",
+      "land": "#D5DDC2",
+      "shadow": "#51432D",
+      "pill": "#EFE5D5",
+      "on_color": "#FEFCF6",
+      "palette": [
+        "#D9BE82",
+        "#D7A8A2",
+        "#ABC7C0",
+        "#DCBA96",
+        "#C4B9D0",
+        "#A9C2A0"
+      ],
+      "land_border": "#FEFCF6",
+      "baseline": "#DCD2C0",
+      "decorative": [
+        "#DCD2C0",
+        "#E7D6B0",
+        "#D5DDC2",
+        "#E4CBB0"
+      ],
+      "code_text": "#5D4E3E",
+      "code_keyword": "#A36774",
+      "code_function": "#598B91",
+      "code_literal": "#997831"
+    }
+  }
+]

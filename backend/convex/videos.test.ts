@@ -124,6 +124,19 @@ describe("creating videos", () => {
     expect(await as(t, b).query(api.videos.queuePosition, { id })).toBe(1);
   });
 
+  test("stores the chosen color theme", async () => {
+    const { t, b } = await world();
+    const id = await as(t, b).mutation(api.videos.create, { ...request, theme: "ocean" });
+    expect((await t.run((ctx) => ctx.db.get(id)))?.options.theme).toBe("ocean");
+  });
+
+  test("rejects an unknown color theme", async () => {
+    const { t, b } = await world();
+    await expect(as(t, b).mutation(api.videos.create, { ...request, theme: "neon" })).rejects.toThrow(
+      "Unknown color theme",
+    );
+  });
+
   test("rejects a too-short topic", async () => {
     const { t, b } = await world();
     await expect(as(t, b).mutation(api.videos.create, { ...request, topic: " a " })).rejects.toThrow(

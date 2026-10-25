@@ -16,6 +16,7 @@ from . import attachments, config
 from .convex_api import Convex
 from .convex_api import user_for_token as _convex_user
 from .voices import VOICE_IDS, VOICES, default_voice, preview_path
+from .themes import DEFAULT_THEME, VIDEO_THEMES
 from .worker import run_forever
 
 app = FastAPI(title="Animai")
@@ -71,6 +72,11 @@ async def upload_attachment(request: Request):
 @app.get("/api/voices")
 def voices():
     return {"default": default_voice(), "voices": VOICES}
+
+
+@app.get("/api/themes")
+def themes():
+    return {"default": DEFAULT_THEME, "themes": VIDEO_THEMES}
 
 
 @app.get("/api/voices/{voice_id}/preview")

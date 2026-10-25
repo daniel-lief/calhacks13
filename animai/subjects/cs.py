@@ -30,26 +30,26 @@ __all__ = [
 
 def _value_text(v, size=34, color=None) -> Text:
     theme = get_theme()
-    return Text(str(v), font=theme.font if theme.name == "bubble" else theme.mono_font,
-                font_size=size, weight=theme.text_weight if theme.name == "bubble" else "MEDIUM",
+    return Text(str(v), font=theme.font if theme.visual_style == "bubble" else theme.mono_font,
+                font_size=size, weight=theme.text_weight if theme.visual_style == "bubble" else "MEDIUM",
                 fill_color=color or theme.text)
 
 
 def _cell(size: float, color=None) -> RoundedRectangle:
     theme = get_theme()
     return RoundedRectangle(width=size, height=size, corner_radius=size * 0.22,
-                            fill_color=color or (theme.pill if theme.name == "bubble" else theme.surface),
+                            fill_color=color or (theme.pill if theme.visual_style == "bubble" else theme.surface),
                             fill_opacity=1, stroke_color=theme.outline,
-                            stroke_width=0 if theme.name == "bubble" else 2.5)
+                            stroke_width=0 if theme.visual_style == "bubble" else 2.5)
 
 
 def _node_circle(radius: float, color=None) -> VGroup:
     """A raised circular node: shadow, surface disc with colored ring. `.circle` is the ring."""
     theme = get_theme()
     circle = Circle(radius=radius,
-                    fill_color=(color or theme.primary) if theme.name == "bubble" else theme.surface,
+                    fill_color=(color or theme.primary) if theme.visual_style == "bubble" else theme.surface,
                     fill_opacity=1, stroke_color=color or theme.primary,
-                    stroke_width=0 if theme.name == "bubble" else 3.5)
+                    stroke_width=0 if theme.visual_style == "bubble" else 3.5)
     group = VGroup(soft_shadow(circle), circle)
     group.circle = circle
     return group
@@ -118,14 +118,14 @@ class ArrayViz(VGroup):
 
     def highlight(self, i: int, color=None) -> Animation:
         return self.cells[i].animate.set_fill(color or get_theme().accent,
-                                             opacity=1 if get_theme().name == "bubble" else 0.45)
+                                             opacity=1 if get_theme().visual_style == "bubble" else 0.45)
 
     def unhighlight(self, *indices: int) -> Animation:
         """Reset cells to normal (cells marked sorted keep their color)."""
         theme = get_theme()
         idx = [i for i in (indices or range(len(self.cells))) if i not in self._sorted]
         return AnimationGroup(*(self.cells[i].animate.set_fill(
-            theme.pill if theme.name == "bubble" else theme.surface, opacity=1) for i in idx))
+            theme.pill if theme.visual_style == "bubble" else theme.surface, opacity=1) for i in idx))
 
     def compare(self, i: int, j: int, color=None) -> Animation:
         c = color or get_theme().secondary
@@ -245,8 +245,8 @@ class StackViz(VGroup):
     def _box(self, v, i):
         theme = get_theme()
         rect = RoundedRectangle(width=self.cw, height=self.ch * 0.9, corner_radius=0.16,
-                                fill_color=theme.primary, fill_opacity=1 if theme.name == "bubble" else 0.25,
-                                stroke_color=theme.primary, stroke_width=0 if theme.name == "bubble" else 2.5)
+                                fill_color=theme.primary, fill_opacity=1 if theme.visual_style == "bubble" else 0.25,
+                                stroke_color=theme.primary, stroke_width=0 if theme.visual_style == "bubble" else 2.5)
         box = VGroup(rect, _value_text(v, 30).move_to(rect))
         box.move_to(UP * (self.ch * (i + 0.5) + 0.04))  # Design-space slot
         return self.tracker.adopt(box)
@@ -289,8 +289,8 @@ class QueueViz(VGroup):
     def _box(self, v, i):
         theme = get_theme()
         sq = RoundedRectangle(width=self.cs, height=self.cs, corner_radius=0.18,
-                              fill_color=theme.secondary, fill_opacity=1 if theme.name == "bubble" else 0.25,
-                              stroke_color=theme.secondary, stroke_width=0 if theme.name == "bubble" else 2.5)
+                              fill_color=theme.secondary, fill_opacity=1 if theme.visual_style == "bubble" else 0.25,
+                              stroke_color=theme.secondary, stroke_width=0 if theme.visual_style == "bubble" else 2.5)
         box = VGroup(sq, _value_text(v, 30).move_to(sq)).move_to(RIGHT * self.cs * 1.1 * i)
         return self.tracker.adopt(box)
 
@@ -343,10 +343,10 @@ class LinkedListViz(VGroup):
         theme = get_theme()
         box = RoundedRectangle(width=self.BOX_W, height=self.HEIGHT, corner_radius=0.1,
                                fill_color=theme.surface, fill_opacity=1,
-                               stroke_color=theme.primary, stroke_width=0 if theme.name == "bubble" else 2.5)
+                               stroke_color=theme.primary, stroke_width=0 if theme.visual_style == "bubble" else 2.5)
         nxt = RoundedRectangle(width=self.NEXT_W, height=self.HEIGHT, corner_radius=0.06,
-                               fill_color=theme.primary, fill_opacity=1 if theme.name == "bubble" else 0.3,
-                               stroke_color=theme.primary, stroke_width=0 if theme.name == "bubble" else 2.5)
+                               fill_color=theme.primary, fill_opacity=1 if theme.visual_style == "bubble" else 0.3,
+                               stroke_color=theme.primary, stroke_width=0 if theme.visual_style == "bubble" else 2.5)
         nxt.next_to(box, RIGHT, buff=0)
         node = VGroup(box, nxt, _value_text(v, 30).move_to(box))
         return self.tracker.adopt(node.move_to(ORIGIN))
@@ -645,7 +645,7 @@ class GraphViz(VGroup):
             self.edges[(u, v)] = line
             if self.weighted:
                 w = Label(str(data["weight"]), size="small",
-                          color=theme.muted if theme.name == "bubble" else theme.secondary)
+                          color=theme.muted if theme.visual_style == "bubble" else theme.secondary)
                 normal = np.array([-d[1], d[0], 0])
                 w.move_to((pu + pv) / 2 + normal * 0.25)
                 w.set_backstroke(theme.background, 6)
@@ -661,8 +661,8 @@ class GraphViz(VGroup):
     def highlight_node(self, n, color=None) -> Animation:
         c = color or get_theme().accent
         return self.nodes[n][0].circle.animate.set_stroke(
-            c, width=0 if get_theme().name == "bubble" else 5.5).set_fill(
-                c, opacity=1 if get_theme().name == "bubble" else 0.4)
+            c, width=0 if get_theme().visual_style == "bubble" else 5.5).set_fill(
+                c, opacity=1 if get_theme().visual_style == "bubble" else 0.4)
 
     def visit(self, n, color=None) -> Animation:
         return self.highlight_node(n, color or get_theme().positive)
@@ -677,7 +677,7 @@ class GraphViz(VGroup):
     def set_note(self, n, text: str, color=None) -> Animation:
         """Show (or update) a small annotation above-right of node n, e.g. a distance."""
         theme = get_theme()
-        note = Label(text, size="small", color=color or (theme.accent if theme.name == "bubble"
+        note = Label(text, size="small", color=color or (theme.accent if theme.visual_style == "bubble"
                                                         else theme.secondary), bold=True)
         note.scale(self.tracker.scale())
         note.next_to(self.nodes[n], UP + RIGHT * 0.6, buff=0.02)

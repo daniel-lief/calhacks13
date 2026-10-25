@@ -69,7 +69,7 @@ class BarPlot(VGroup):
         self.tracker = ScaleTracker()  # Design space: baseline starts at the origin
 
         self.baseline = (Line(ORIGIN, UP * height) if horizontal else Line(ORIGIN, RIGHT * width))
-        self.baseline.set_stroke(theme.baseline if theme.name == "bubble" else theme.muted, 3)
+        self.baseline.set_stroke(theme.baseline if theme.visual_style == "bubble" else theme.muted, 3)
         self.grid = self._grid()
         self.bars = VGroup(*(self._bar(i, v, i) for i, v in enumerate(self.values)))
         self.category_labels = VGroup(*(self._category_label(i, i) for i in range(n)))
@@ -114,17 +114,17 @@ class BarPlot(VGroup):
 
     def _bar(self, i, v, slot):
         length = self._length(v)
-        r = min(0.13 if get_theme().name == "bubble" else 0.09, self.bar_thickness / 2, length / 2)
+        r = min(0.13 if get_theme().visual_style == "bubble" else 0.09, self.bar_thickness / 2, length / 2)
         if self.horizontal:
             bar = (rounded_bar(self.bar_thickness, length, r).rotate(-PI / 2)
-                   if get_theme().name == "bubble" else
+                   if get_theme().visual_style == "bubble" else
                    RoundedRectangle(width=length, height=self.bar_thickness, corner_radius=r))
             bar.move_to(self._slot_center(slot) + RIGHT * length / 2)
         else:
-            bar = (rounded_bar(self.bar_thickness, length, r) if get_theme().name == "bubble" else
+            bar = (rounded_bar(self.bar_thickness, length, r) if get_theme().visual_style == "bubble" else
                    RoundedRectangle(width=self.bar_thickness, height=length, corner_radius=r))
             bar.move_to(self._slot_center(slot) + UP * length / 2)
-        bar.set_fill(self.colors[i], 1 if get_theme().name == "bubble" else 0.92).set_stroke(self.colors[i], 0)
+        bar.set_fill(self.colors[i], 1 if get_theme().visual_style == "bubble" else 0.92).set_stroke(self.colors[i], 0)
         return self.tracker.adopt(bar)
 
     def _category_label(self, i, slot):
@@ -349,8 +349,8 @@ class PieChart(VGroup):
         s = self.tracker.scale()
         return AnnularSector(angle=angle, start_angle=start, inner_radius=self.inner * s,
                              outer_radius=self.radius * s, arc_center=self.tracker.origin(),
-                             fill_color=self.colors[i], fill_opacity=1 if get_theme().name == "bubble" else 0.9,
-                             stroke_width=2, stroke_color=get_theme().surface if get_theme().name == "bubble"
+                             fill_color=self.colors[i], fill_opacity=1 if get_theme().visual_style == "bubble" else 0.9,
+                             stroke_width=2, stroke_color=get_theme().surface if get_theme().visual_style == "bubble"
                              else get_theme().background)
 
     def build(self, run_time: float = 2.0, **kwargs) -> Animation:

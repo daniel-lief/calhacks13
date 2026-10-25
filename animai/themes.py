@@ -12,7 +12,9 @@ This module has no engine imports, so the render launcher can use it.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+import json
+from pathlib import Path
+from dataclasses import dataclass, field, replace
 
 __all__ = ["Theme", "THEMES", "get_theme", "set_theme", "palette_color"]
 
@@ -47,6 +49,12 @@ class Theme:
     pill: str = "#F8E1E5"
     baseline: str = "#D9D9D9"
     on_color: str = "#EFEDE7"
+    visual_style: str = "legacy"       # Geometry/typography family, independent of palette ID
+    decorative: tuple[str, ...] = ("#D9D9D9", "#FDDFAB", "#E8EDCC", "#FCDDA8")
+    code_text: str = "#000000"
+    code_keyword: str = "#E45E7F"
+    code_function: str = "#3186E1"
+    code_literal: str = "#BE9931"
 
 
 THEMES: dict[str, Theme] = {
@@ -60,7 +68,7 @@ THEMES: dict[str, Theme] = {
         font="Fredoka", heading_font="Fredoka", mono_font="JetBrains Mono", serif_font="Fredoka",
         text_weight="SEMIBOLD", land="#E8EDCC", land_border="#FBF5F2",
         shadow="#000000", shadow_opacity=0.07,
-        backdrop="peach", backdrop_color="#FEEAE0", light=True,
+        backdrop="peach", backdrop_color="#FEEAE0", light=True, visual_style="bubble",
     ),
     # 3Blue1Brown look: near-black with a soft center glow, bright blues and warm accents
     "classic": Theme(
@@ -117,6 +125,23 @@ THEMES: dict[str, Theme] = {
         backdrop="grid", backdrop_color="#17335C",
     ),
 }
+
+# The web picker and engine share this color-only catalogue. Every selectable
+# variant inherits the original bubble geometry, fonts, weights and effects.
+_catalog = json.loads((Path(__file__).parent / "assets" / "video-themes.json").read_text(encoding="utf-8"))
+_bubble = THEMES["bubble"]
+_color_fields = {
+    "background", "backdrop_color", "surface", "text", "muted", "outline",
+    "primary", "secondary", "accent", "positive", "negative", "palette",
+    "land", "land_border", "shadow", "pill", "baseline", "on_color", "decorative",
+    "code_text", "code_keyword", "code_function", "code_literal",
+}
+for _entry in _catalog:
+    _colors = _entry["colors"]
+    if set(_colors) - _color_fields:
+        raise ValueError("Video palettes may override colors only")
+    _colors = {k: tuple(v) if isinstance(v, list) else v for k, v in _colors.items()}
+    THEMES[_entry["id"]] = replace(_bubble, name=_entry["id"], **_colors)
 
 _current: Theme | None = None
 

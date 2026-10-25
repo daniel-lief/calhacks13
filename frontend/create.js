@@ -17,8 +17,8 @@ const EXAMPLES = [
 const STEPS = ["writing", "checking", "rendering", "reviewing", "done"];
 
 const el = {
-  form: $("#form"), topic: $("#topic"), submit: $("#submit"), examples: $("#examples"),
-  toggleOptions: $("#toggle-options"), options: $("#options"), banner: $("#banner"), voiceGrid: $("#voice-grid"),
+  form: $("#form"), topic: $("#topic"), submit: $("#submit"), submitBottom: $("#submit-bottom"), examples: $("#examples"),
+  toggleOptions: $("#toggle-options"), options: $("#options"), banner: $("#banner"), voiceGrid: $("#voice-grid"), themeGrid: $("#theme-grid"),
   pdfInput: $("#pdf-input"), pdfChosen: $("#pdf-chosen"), pdfRemove: $("#pdf-remove"), pdfError: $("#pdf-error"),
   job: $("#job"), jobTopic: $("#job-topic"), jobTitle: $("#job-title"), elapsed: $("#job-elapsed"),
   steps: $("#steps"), progressWrap: $("#progress-wrap"), progressBar: $("#progress-bar"), stage: $("#job-stage"),
@@ -43,7 +43,7 @@ let codeLoadedFor = null;
 // --- Composer ----------------------------------------------------------------
 
 function renderExamples() {
-  const picks = [...EXAMPLES].sort(() => Math.random() - 0.5).slice(0, 2);
+  const picks = [EXAMPLES[Math.floor(Math.random() * EXAMPLES.length)], "Explain Bubble Sort"];
   el.examples.replaceChildren("or try ");
   picks.forEach((text, i) => {
     const b = document.createElement("button");
@@ -52,6 +52,48 @@ function renderExamples() {
     b.addEventListener("click", () => { el.topic.value = text; el.topic.focus(); });
     el.examples.append(b, i === 0 ? " or " : "");
   });
+}
+
+// --- Color themes ------------------------------------------------------------
+
+async function loadThemes() {
+  let data;
+  try { data = await api("/api/themes"); }
+  catch {
+    el.themeGrid.textContent = "Using Peach. Other palettes couldn't load; refresh to try again.";
+    return;
+  }
+  el.themeGrid.replaceChildren(...data.themes.map(t => {
+    const card = document.createElement("label");
+    card.className = "theme-card";
+    card.title = t.description;
+    const input = document.createElement("input");
+    Object.assign(input, {type:"radio", name:"theme", value:t.id, checked:t.id === data.default});
+    input.setAttribute("aria-label", `${t.name} color theme`);
+    const preview = document.createElement("span");
+    preview.className = "theme-preview";
+    preview.setAttribute("aria-hidden", "true");
+    preview.style.setProperty("--preview-bg", t.colors.background);
+    preview.style.setProperty("--preview-end", t.colors.backdrop_color);
+    preview.style.setProperty("--preview-surface", t.colors.surface);
+    preview.style.setProperty("--preview-text", t.colors.text);
+    preview.style.setProperty("--preview-accent", t.colors.accent);
+    preview.innerHTML = '<span class="theme-preview-title">Aa</span><span class="theme-preview-panel"></span><span class="theme-preview-dot"></span>';
+    const bars = document.createElement("span");
+    bars.className = "theme-preview-bars";
+    t.colors.palette.slice(0, 5).forEach((color, i) => {
+      const bar = document.createElement("i");
+      bar.style.background = color;
+      bar.style.height = `${[45, 75, 55, 90, 65][i]}%`;
+      bars.appendChild(bar);
+    });
+    preview.appendChild(bars);
+    const name = document.createElement("span");
+    name.className = "theme-name";
+    name.textContent = t.name;
+    card.append(input, preview, name);
+    return card;
+  }));
 }
 
 // --- Voices ------------------------------------------------------------------
@@ -134,6 +176,7 @@ function formPayload() {
     review: fd.get("review") === "on",
     public: fd.get("public") === "on",
     voice: fd.get("voice") || "",
+    theme: fd.get("theme") || "bubble",
     extra: (fd.get("extra") || "").trim(),
   };
 }
@@ -182,8 +225,8 @@ async function uploadPdf(file) {
 }
 
 async function submitJob(payload) {
-  if (!requireSignIn("Sign in to make videos")) return;
-  el.submit.disabled = true;
+  if (el.submit.disabled || !requireSignIn("Sign in to make videos")) return;
+  el.submit.disabled = el.submitBottom.disabled = true;
   try {
     if (pdfFile) payload = { ...payload, attachment: await uploadPdf(pdfFile) };
     const id = await call("mutation", "videos:create", payload);
@@ -192,7 +235,7 @@ async function submitJob(payload) {
   } catch (err) {
     alert(`Couldn't start: ${err.message}`);
   } finally {
-    el.submit.disabled = false;
+    el.submit.disabled = el.submitBottom.disabled = false;
   }
 }
 
@@ -294,9 +337,7 @@ function renderJob(job) {
   clearInterval(elapsedTimer);
   const tick = () => {
     const end = job.finished_at || Date.now() / 1000;
-    const cost = job.cost_usd ? ` - $${job.cost_usd.toFixed(2)}` : "";
-    const model = job.model ? ` - ${job.model.replace(/^claude-/, "")}` : "";
-    el.elapsed.textContent = `${formatDuration(end - job.created_at)}${cost}${model}`;
+    el.elapsed.textContent = formatDuration(end - job.created_at);
   };
   tick();
   if (active) elapsedTimer = setInterval(tick, 1000);
@@ -319,7 +360,7 @@ function renderJob(job) {
   el.player.hidden = !job.video_url;
   el.newVideo.hidden = active;
   el.togglePublic.hidden = !job.ownedByMe;
-  el.togglePublic.textContent = job.public ? "Remove from feed" : "Post to feed";
+  el.togglePublic.textContent = job.public ? "Make private" : "Make public";
 
   // Failure
   el.failure.hidden = job.status !== "failed";
@@ -390,7 +431,7 @@ function renderTags(job) {
   el.tagList.replaceChildren(...topTags(job).map((t) => {
     const link = document.createElement("a");
     link.className = "chip";
-    link.href = `#/feed?tag=${encodeURIComponent(t)}`;
+    link.href = `#/discover?tag=${encodeURIComponent(t)}`;
     link.textContent = t;
     return link;
   }));

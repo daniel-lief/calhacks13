@@ -50,10 +50,10 @@ _SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 def element_color(symbol: str) -> str:
     """CPK-style color for an element, adjusted for the theme (carbon/hydrogen use text tones)."""
     theme = get_theme()
-    if theme.name == "bubble":
-        return {"H": "#D9D9D9", "C": "#9D8084", "N": "#A6C7EA", "O": "#F0B3BC",
-                "F": "#AAD9B0", "Cl": "#AAD9B0", "Br": "#F1C29D", "I": "#C7B6ED",
-                "S": "#ECD288", "P": "#F1C29D"}.get(symbol, theme.secondary)
+    if theme.visual_style == "bubble":
+        return {"H": theme.baseline, "C": theme.muted, "N": theme.primary, "O": theme.negative,
+                "F": theme.positive, "Cl": theme.positive, "Br": theme.palette[3], "I": theme.palette[4],
+                "S": theme.secondary, "P": theme.palette[3]}.get(symbol, theme.secondary)
     if symbol in ("C", "H"):
         return theme.text if symbol == "C" else theme.muted
     return _CPK.get(symbol, theme.secondary)
@@ -120,10 +120,10 @@ class Molecule(VGroup):
                     text += ("+" if charge > 0 else "−") * min(abs(charge), 1) if abs(charge) == 1 \
                         else f"{abs(charge)}{'+' if charge > 0 else '−'}"
                 label = Text(text.translate(_SUBSCRIPTS), font=theme.font, font_size=font_size,
-                             weight=theme.text_weight if theme.name == "bubble" else "BOLD",
+                             weight=theme.text_weight if theme.visual_style == "bubble" else "BOLD",
                              fill_color=element_color(sym))
                 label.move_to(p)
-                if theme.name == "bubble":
+                if theme.visual_style == "bubble":
                     disc = RoundedRectangle(width=label.get_width() + .16,
                                             height=label.get_height() + .13,
                                             corner_radius=.12, fill_color=element_color(sym),
@@ -238,7 +238,7 @@ class Molecule3D(Group):
         self.balls = Group()
         for sym, p in zip(self.symbols, pts):
             r = 0.22 if sym == "H" else 0.36
-            color = element_color(sym) if get_theme().name == "bubble" else (
+            color = element_color(sym) if get_theme().visual_style == "bubble" else (
                 _CPK.get(sym, "#B0B0B0") if sym != "C" else "#5A5A5A")
             ball = Sphere(radius=r * scale / 1.3, resolution=(24, 12))
             ball.set_color(color).move_to(p)
@@ -247,7 +247,7 @@ class Molecule3D(Group):
         for b in mol.GetBonds():
             i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
             stick = Line3D(pts[i], pts[j], width=0.08, resolution=(8, 8))
-            stick.set_color(get_theme().muted if get_theme().name == "bubble" else "#BFBFBF")
+            stick.set_color(get_theme().muted if get_theme().visual_style == "bubble" else "#BFBFBF")
             self.sticks.add(stick)
         # Reserve the molecule's rotational envelope before region fitting. A later
         # spin must not send atoms outside the cream presentation card.
@@ -450,18 +450,18 @@ class PeriodicTable(VGroup):
         for z, sym in enumerate(_ELEMENTS, start=1):
             row, col = _grid_position(z)
             cat = next(c for c, zs in _CATEGORIES.items() if z in zs)
-            color = palette_color(list(_CATEGORY_COLORS).index(cat)) if theme.name == "bubble" else _CATEGORY_COLORS[cat]
+            color = palette_color(list(_CATEGORY_COLORS).index(cat)) if theme.visual_style == "bubble" else _CATEGORY_COLORS[cat]
             box = RoundedRectangle(width=cell_size * 0.94, height=cell_size * 0.94,
-                                   corner_radius=0.12 if theme.name == "bubble" else 0.05,
-                                   fill_color=color, fill_opacity=1 if theme.name == "bubble" else 0.28,
-                                   stroke_color=color, stroke_width=0 if theme.name == "bubble" else 1.5)
+                                   corner_radius=0.12 if theme.visual_style == "bubble" else 0.05,
+                                   fill_color=color, fill_opacity=1 if theme.visual_style == "bubble" else 0.28,
+                                   stroke_color=color, stroke_width=0 if theme.visual_style == "bubble" else 1.5)
             label = Text(sym, font=theme.font, font_size=int(cell_size * 34), weight=theme.text_weight,
                          fill_color=theme.text)
             parts = [box, label.move_to(box).shift(DOWN * cell_size * 0.06)]
             if show_numbers:
                 num = Text(str(z), font=theme.font, font_size=int(cell_size * 15),
                            weight=theme.text_weight,
-                           fill_color=theme.text if theme.name == "bubble" else theme.muted)
+                           fill_color=theme.text if theme.visual_style == "bubble" else theme.muted)
                 num.move_to(box.get_corner(UP + LEFT) + np.array([0.06, -0.06, 0]) * cell_size / 0.68,
                             aligned_edge=UP + LEFT)
                 parts.append(num)

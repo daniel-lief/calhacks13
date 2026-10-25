@@ -12,6 +12,7 @@ export const videoOptions = v.object({
   review: v.boolean(),
   extra: v.string(),
   voice: v.string(), // edge-tts voice name; "" means the server default
+  theme: v.optional(v.string()), // color palette id from animai/assets/video-themes.json; absent means "bubble"
 });
 
 export const chapter = v.object({ start: v.number(), title: v.string() });

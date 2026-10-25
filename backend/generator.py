@@ -9,6 +9,7 @@ import anthropic
 
 from . import config, prompts
 from .validate import extract_code
+from .themes import theme_name
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
@@ -29,11 +30,19 @@ class SceneAuthor:
         self.on_event = on_event  # (kind, text): kind is "thinking" | "progress" | "usage"
         self.cost_usd = 0.0
 
-    def write(self, topic: str, length: str, extra: str = "", pdf: bytes | None = None) -> str:
+    def write(self, topic: str, length: str, extra: str = "", theme: str = "bubble",
+              pdf: bytes | None = None) -> str:
         """The first draft. A PDF, if given, is private context: it goes first in the
         conversation, so every repair and review turn can still see it."""
-        content = (prompts.initial_request_with_pdf(topic, length, extra, pdf) if pdf
-                   else prompts.initial_request(topic, length, extra))
+        note = (f'\n\nSelected color theme: {theme_name(theme)}. Set THEME = "{theme}". '
+                'Use get_theme() and palette_color(i) for all colors, including new shapes and labels. '
+                'Keep Fredoka SemiBold, JetBrains Mono, rounded cards and all animation styling unchanged. '
+                'Retain this palette during repairs and visual review.')
+        if pdf:
+            content = prompts.initial_request_with_pdf(topic, length, extra, pdf)
+            content[-1]["text"] += note
+        else:
+            content = prompts.initial_request(topic, length, extra) + note
         return self._turn(content, require_code=True)
 
     def repair(self, error: str, stage: str) -> str:

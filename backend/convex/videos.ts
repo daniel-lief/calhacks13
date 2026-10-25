@@ -184,6 +184,8 @@ const DAILY_LIMIT = 100;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LENGTHS = ["short", "medium", "long"];
 const QUALITIES = ["low", "medium", "high"];
+// Must match the ids in animai/assets/video-themes.json
+const THEMES = ["bubble", "ocean", "meadow", "lavender", "rose", "sand"];
 
 /**
  * Queue a new video for the signed-in user. The render worker picks it up from here.
@@ -199,6 +201,7 @@ export const create = mutation({
     public: v.boolean(),
     extra: v.string(),
     voice: v.string(),
+    theme: v.optional(v.string()),
     attachment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -210,6 +213,7 @@ export const create = mutation({
     if (topic.length < 2 || topic.length > 300) throw new ConvexError("Topics need 2–300 characters");
     if (!LENGTHS.includes(args.length)) throw new ConvexError("Unknown length");
     if (!QUALITIES.includes(args.quality)) throw new ConvexError("Unknown quality");
+    if (args.theme !== undefined && !THEMES.includes(args.theme)) throw new ConvexError("Unknown color theme");
     if (args.extra.length > 1000) throw new ConvexError("Guidance can be at most 1000 characters");
 
     const since = Date.now() - DAY_MS;
@@ -231,6 +235,7 @@ export const create = mutation({
         review: args.review,
         extra: args.extra.trim(),
         voice: args.voice,
+        theme: args.theme ?? "bubble",
       },
       status: "queued",
       stage: "Waiting in queue",

@@ -39,7 +39,7 @@ class FakeAuthor:
     def __init__(self, on_event):
         self.cost_usd = 0.01
 
-    def write(self, topic, length, extra, pdf=None):
+    def write(self, topic, length, extra, theme="bubble", pdf=None):
         return CODE
 
     def repair(self, problem, stage):
@@ -152,7 +152,7 @@ class WorkerTest(unittest.TestCase):
         seen = {}
 
         class Recording(FakeAuthor):
-            def write(self, topic, length, extra, pdf=None):
+            def write(self, topic, length, extra, theme="bubble", pdf=None):
                 seen["pdf"] = pdf
                 return CODE
 

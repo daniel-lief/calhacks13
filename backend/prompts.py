@@ -83,9 +83,10 @@ class Explainer(AnimaiScene):
   math, cmath, random, itertools, functools, operator, colorsys, fractions, collections,
   string, typing. No file, network, OS or subprocess access; no external images or sounds.
   Do not use open, eval, exec, __import__, os, sys, Path, or dunder attributes.
-- Always use THEME = "bubble". This is the channel's visual identity for EVERY subject:
-  peach gradient, Fredoka SemiBold headings and labels, pastel blue/yellow/pink/orange/
-  purple/green visuals, cream rounded cards, borderless shapes, subtle centered shadows.
+- Use the user's selected THEME (default "bubble"). Color palettes are bubble (Peach),
+  ocean, meadow, lavender, rose and sand. All share the same visual identity:
+  a soft gradient, Fredoka SemiBold headings and labels, pastel visuals, rounded cards,
+  borderless shapes and subtle centered shadows. Only colors change between palettes.
   Use get_theme() and palette_color(i); do not substitute neon colors, white-on-black
   diagrams, serif headings, dark code editors, or subject-specific legacy themes.
   Use Label for all prose and numbers, CodeBlock for code (JetBrains Mono with the

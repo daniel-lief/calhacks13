@@ -13,9 +13,13 @@ class WritePdfTest(unittest.TestCase):
             author.write("Problem 3: projectile motion", "short", "", **kwargs)
         return turn.call_args.args[1]
 
-    def test_without_a_pdf_the_request_is_unchanged(self):
+    def test_without_a_pdf_the_request_is_plain_text(self):
         content = self.capture()
-        self.assertEqual(content, prompts.initial_request("Problem 3: projectile motion", "short", ""))
+        self.assertTrue(content.startswith(prompts.initial_request("Problem 3: projectile motion", "short", "")))
+
+    def test_the_chosen_theme_is_requested_with_or_without_a_pdf(self):
+        self.assertIn('Set THEME = "ocean"', self.capture(theme="ocean"))
+        self.assertIn('Set THEME = "ocean"', self.capture(theme="ocean", pdf=b"%PDF-1.7 fake")[1]["text"])
 
     def test_a_pdf_goes_first_as_a_document_then_the_topic(self):
         content = self.capture(pdf=b"%PDF-1.7 fake")
