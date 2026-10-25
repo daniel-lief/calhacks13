@@ -199,6 +199,15 @@ body[data-preloading="true"] .content { opacity: 0; visibility: hidden; pointer-
 .options textarea:focus { border-color: var(--foreground); }
 .options textarea::placeholder { color: var(--muted); }
 
+/* PDF context */
+.pdf-pick { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6vh 1.2vw; }
+.pdf-button { cursor: pointer; text-decoration: underline; text-underline-offset: .25em; text-decoration-color: #ffffff40; }
+.pdf-chosen { color: var(--foreground); }
+.pdf-chosen[hidden], .pdf-remove[hidden], #pdf-remove[hidden] { display: none; }
+.pdf-hint { margin-top: .6vh; max-width: 60ch; line-height: 1.45; }
+.pdf-error { min-height: 1em; color: var(--accent); }
+.pdf-pick:has(input:focus-visible) .pdf-button { outline: 1px solid var(--foreground); outline-offset: 3px; }
+
 /* Voice picker */
 .voice-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8vh .6vw; }
 .options label.voice-card {

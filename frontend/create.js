@@ -19,6 +19,7 @@ const STEPS = ["writing", "checking", "rendering", "reviewing", "done"];
 const el = {
   form: $("#form"), topic: $("#topic"), submit: $("#submit"), examples: $("#examples"),
   toggleOptions: $("#toggle-options"), options: $("#options"), banner: $("#banner"), voiceGrid: $("#voice-grid"),
+  pdfInput: $("#pdf-input"), pdfChosen: $("#pdf-chosen"), pdfRemove: $("#pdf-remove"), pdfError: $("#pdf-error"),
   job: $("#job"), jobTopic: $("#job-topic"), jobTitle: $("#job-title"), elapsed: $("#job-elapsed"),
   steps: $("#steps"), progressWrap: $("#progress-wrap"), progressBar: $("#progress-bar"), stage: $("#job-stage"),
   player: $("#player"), video: $("#video"), download: $("#download"), togglePublic: $("#toggle-public"),
@@ -137,11 +138,56 @@ function formPayload() {
   };
 }
 
+// --- PDF context ---------------------------------------------------------------
+// The PDF is private context for Claude. It goes to our own server's memory as the raw
+// request body (so not even its filename leaves the browser), never to Convex.
+
+const PDF_MAX_BYTES = 20 * 1024 * 1024;
+let pdfFile = null;
+
+function setPdf(file) {
+  el.pdfError.textContent = "";
+  if (file && !(file.type === "application/pdf" || /\.pdf$/i.test(file.name))) {
+    el.pdfError.textContent = "That file isn't a PDF";
+    file = null;
+  } else if (file && file.size > PDF_MAX_BYTES) {
+    el.pdfError.textContent = "PDFs can be up to 20 MB and 50 pages";
+    file = null;
+  }
+  pdfFile = file;
+  el.pdfInput.value = "";
+  el.pdfChosen.hidden = el.pdfRemove.hidden = !file;
+  const size = file && (file.size < 1024 * 1024 ? `${Math.max(1, Math.round(file.size / 1024))} KB`
+    : `${(file.size / 1024 / 1024).toFixed(1)} MB`);
+  el.pdfChosen.textContent = file ? `${file.name} (${size})` : "";
+}
+
+el.pdfInput.addEventListener("change", () => setPdf(el.pdfInput.files[0] || null));
+el.pdfRemove.addEventListener("click", () => setPdf(null));
+
+async function uploadPdf(file) {
+  const send = async (refresh) => fetch("/api/attachments", {
+    method: "POST",
+    headers: { "Content-Type": "application/pdf", Authorization: `Bearer ${await authToken({ refresh })}` },
+    body: file,
+  });
+  let res = await send(false);
+  if (res.status === 401) res = await send(true);  // the short-lived session token may have just expired
+  if (!res.ok) {
+    let detail = "Couldn't upload the PDF";
+    try { detail = (await res.json()).detail || detail; } catch { /* not JSON */ }
+    throw new Error(detail);
+  }
+  return (await res.json()).token;
+}
+
 async function submitJob(payload) {
   if (!requireSignIn("Sign in to make videos")) return;
   el.submit.disabled = true;
   try {
+    if (pdfFile) payload = { ...payload, attachment: await uploadPdf(pdfFile) };
     const id = await call("mutation", "videos:create", payload);
+    setPdf(null);
     location.hash = `#/v/${id}`;
   } catch (err) {
     alert(`Couldn't start: ${err.message}`);

@@ -214,6 +214,17 @@
               <div class="voice-grid" id="voice-grid"></div>
             </fieldset>
             <fieldset class="wide">
+              <legend class="muted caps">PDF context</legend>
+              <div class="pdf-pick">
+                <label class="pdf-button link-button" for="pdf-input">Attach a PDF</label>
+                <input id="pdf-input" type="file" accept="application/pdf,.pdf" class="visually-hidden">
+                <span class="pdf-chosen" id="pdf-chosen" hidden></span>
+                <button id="pdf-remove" type="button" class="link-button muted caps" hidden>Remove</button>
+              </div>
+              <p class="muted pdf-hint">Optional. A problem set, lecture slides or notes for Claude to work from. Up to 20 MB and 50 pages. Only Claude reads it: it isn't saved, and nothing on the video shows it was used.</p>
+              <p class="pdf-error" id="pdf-error" role="alert"></p>
+            </fieldset>
+            <fieldset class="wide">
               <legend class="muted caps">Guidance</legend>
               <textarea name="extra" rows="2" maxlength="1000"
                         placeholder="Audience, angle, or what to focus on. For example: assume I know basic linear algebra; focus on why it's O(n log n)."></textarea>

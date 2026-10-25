@@ -108,6 +108,13 @@ function startSession() {
   convexClient.setAuth(fetchToken, () => refreshUser());
 }
 
+/** A current session token for calls to our own server (e.g. PDF uploads), or null. */
+async function authToken({ refresh = false } = {}) {
+  await convexReady;
+  if (!readStore(REFRESH_KEY)) return null;
+  return await fetchToken({ forceRefreshToken: refresh });
+}
+
 async function refreshUser() {
   try {
     currentUser = await convexClient.query(fnRef("users:me"), {});
