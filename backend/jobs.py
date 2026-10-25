@@ -70,14 +70,20 @@ class JobManager:
         try:
             self._pipeline(job)
         except (PipelineFailure, GenerationError) as exc:
-            self._update(job, status="failed", stage="Failed", error=str(exc),
-                         finished_at=time.time(), log=str(exc), kind="error")
-        except Exception as exc:  # Unexpected bug: record it rather than leave the job hanging
+            self._report_failure(job, str(exc), str(exc))
+        except Exception as exc:  # Unexpected bug (or Convex unreachable): record it if we can
             traceback.print_exc()
-            self._update(job, status="failed", stage="Failed", error=f"Internal error: {exc}",
-                         finished_at=time.time(), log=traceback.format_exc(limit=3), kind="error")
+            self._report_failure(job, f"Internal error: {exc}", traceback.format_exc(limit=3))
         finally:
             shutil.rmtree(job.dir, ignore_errors=True)
+
+    def _report_failure(self, job: Job, error: str, log: str):
+        """Best effort: if Convex can't be reached either, the worker's next startup marks it failed."""
+        try:
+            self._update(job, status="failed", stage="Failed", error=error,
+                         finished_at=time.time(), log=log, kind="error")
+        except Exception:
+            traceback.print_exc()
 
     # --- reporting -------------------------------------------------------------
 

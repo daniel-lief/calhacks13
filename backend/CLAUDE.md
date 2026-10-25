@@ -23,9 +23,14 @@ Joining as a teammate:
 1. Ask the project owner to invite you (Convex dashboard -> Team settings -> Members).
 2. In `backend/`: `npm install`, then `npx convex login` and `npx convex dev --configure`
    (choose the existing `animai` project). This writes `backend/.env.local`.
-3. Add `WORKER_SECRET=<value>` to `backend/.env.local`. Get the value from the owner, or read it
-   with `npx convex env get WORKER_SECRET`. Never commit it.
-4. Run the site from the repo root: `.venv\Scripts\python -m backend`.
+3. Run the site from the repo root: `.venv\Scripts\python -m backend`.
+
+**Only one machine runs the render worker.** The worker starts when `backend/.env.local` has
+`WORKER_SECRET`, and on startup it marks every unfinished video as failed (it assumes they were
+interrupted). Two workers would fail each other's renders. So only the machine that renders
+(the demo laptop) sets `WORKER_SECRET` (`npx convex env get WORKER_SECRET` shows it; never commit
+it). Everyone else leaves it out: their server then serves the site and talks to the same Convex
+data, and their "Generate" requests are rendered by the one worker.
 
 Changing Convex functions: edit `backend/convex/*.ts`, run `npm test` (convex-test + vitest),
 then `npx convex dev --once` to deploy. Python tests: `.venv\Scripts\python -m unittest discover

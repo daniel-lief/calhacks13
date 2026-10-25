@@ -25,6 +25,9 @@ def run_forever(convex, stop: threading.Event, poll_seconds: float | None = None
             continue
         if job:
             print(f"Worker: making “{job['topic']}” ({job['id']})", flush=True)
-            JobManager(convex).run(job)
+            try:
+                JobManager(convex).run(job)
+            except Exception:  # Never let one job stop the worker; later videos still need making
+                traceback.print_exc()
         else:
             stop.wait(poll)

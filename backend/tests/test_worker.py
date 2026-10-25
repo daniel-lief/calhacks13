@@ -120,6 +120,33 @@ class WorkerTest(unittest.TestCase):
         paths = [p for p, _ in convex.calls]
         self.assertEqual(paths[:2], ["worker:failStale", "worker:claimNext"])
 
+    def test_worker_survives_when_convex_fails_mid_job(self):
+        """If even the failure report can't reach Convex, the worker must keep serving later jobs."""
+
+        class FlakyConvex(FakeConvex):
+            def mutation(self, path, args):
+                if path == "worker:update":
+                    raise RuntimeError("Convex unreachable")
+                return super().mutation(path, args)
+
+        second = dict(JOB, id="vid2")
+        convex = FlakyConvex(jobs_to_claim=[dict(JOB), second])
+        stop = threading.Event()
+        claims = []
+        original = convex.mutation
+
+        def mutation(path, args):
+            result = original(path, args)
+            if path == "worker:claimNext":
+                claims.append(result)
+                if len(claims) == 3:
+                    stop.set()
+            return result
+
+        convex.mutation = mutation
+        worker.run_forever(convex, stop, poll_seconds=0)
+        self.assertEqual([c["id"] if c else None for c in claims], ["vid1", "vid2", None])
+
 
 if __name__ == "__main__":
     unittest.main()
