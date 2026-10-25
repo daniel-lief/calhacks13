@@ -70,6 +70,7 @@ def render_scene(
     dry_run: bool = False,
     narration: bool = True,
     voice: str = "",
+    theme: str = "bubble",
     on_segment: Callable[[int], None] | None = None,
 ) -> RenderResult:
     """
@@ -84,7 +85,7 @@ def render_scene(
     timings.unlink(missing_ok=True)
 
     cmd = [sys.executable, "-m", "animai", str(scene_path), "Explainer", "-q", quality,
-           "--out", str(out_dir), "--file-name", "explainer"]
+           "--out", str(out_dir), "--file-name", "explainer", "--theme", theme]
     if dry_run:
         cmd.append("--dry-run")
     if not narration:

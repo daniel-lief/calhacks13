@@ -6,13 +6,14 @@ import re
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from . import config
 from .jobs import JobManager, JobOptions
 from .voices import VOICE_IDS, VOICES, default_voice, preview_path
+from .themes import DEFAULT_THEME, THEME_IDS, VIDEO_THEMES
 
 app = FastAPI(title="Explainer")
 jobs = JobManager()
@@ -25,8 +26,16 @@ class CreateJob(BaseModel):
     narration: bool = True
     review: bool = True
     extra: str = Field(default="", max_length=1000)
-    public: bool = True
+    public: bool = False
     voice: str = ""
+    theme: str = Field(default=DEFAULT_THEME, max_length=32)
+
+    @field_validator("theme")
+    @classmethod
+    def valid_theme(cls, value):
+        if value not in THEME_IDS:
+            raise ValueError("Unknown video color theme")
+        return value
 
 
 class UpdateJob(BaseModel):
@@ -45,6 +54,11 @@ class Save(BaseModel):
 @app.get("/api/voices")
 def voices():
     return {"default": default_voice(), "voices": VOICES}
+
+
+@app.get("/api/themes")
+def themes():
+    return {"default": DEFAULT_THEME, "themes": VIDEO_THEMES}
 
 
 @app.get("/api/voices/{voice_id}/preview")
@@ -76,7 +90,7 @@ def create_job(body: CreateJob):
     topic = " ".join(body.topic.split())
     job = jobs.create(topic, JobOptions(
         length=body.length, quality=body.quality, narration=body.narration,
-        review=body.review, extra=body.extra.strip(), voice=body.voice,
+        review=body.review, extra=body.extra.strip(), voice=body.voice, theme=body.theme,
     ), public=body.public)
     return jobs.serialize(job)
 

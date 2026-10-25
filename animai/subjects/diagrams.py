@@ -40,12 +40,12 @@ class Node(VGroup):
                  **kwargs):
         theme = get_theme()
         self.color = color or theme.primary
-        self.fill_opacity = 1 if theme.name == "bubble" else fill_opacity
+        self.fill_opacity = 1 if theme.visual_style == "bubble" else fill_opacity
         self.label = Label(text, size=size, max_width=max_text_width, bold=True)
         w = width or max(self.label.get_width() + 0.7, 1.3)
         h = height or max(self.label.get_height() + 0.55, 0.85)
         style = dict(fill_color=theme.surface, fill_opacity=1, stroke_color=self.color,
-                     stroke_width=0 if theme.name == "bubble" else 3)
+                     stroke_width=0 if theme.visual_style == "bubble" else 3)
         if shape == "circle":
             self.shape = Circle(radius=max(w, h) / 2, **style)
         elif shape == "diamond":
@@ -67,15 +67,15 @@ class Node(VGroup):
     def highlight(self, color=None, run_time: float = 0.8) -> Animation:
         c = color or get_theme().accent
         return AnimationGroup(
-            self.shape.animate.set_stroke(c, width=0 if get_theme().name == "bubble" else 5),
-            self.tint.animate.set_fill(c, opacity=1 if get_theme().name == "bubble" else 0.38),
-            Indicate(self.label, color=get_theme().text if get_theme().name == "bubble" else c,
+            self.shape.animate.set_stroke(c, width=0 if get_theme().visual_style == "bubble" else 5),
+            self.tint.animate.set_fill(c, opacity=1 if get_theme().visual_style == "bubble" else 0.38),
+            Indicate(self.label, color=get_theme().text if get_theme().visual_style == "bubble" else c,
                      scale_factor=1.08), run_time=run_time,
         )
 
     def unhighlight(self, run_time: float = 0.6) -> Animation:
         return AnimationGroup(self.shape.animate.set_stroke(
-                                  self.color, width=0 if get_theme().name == "bubble" else 3),
+                                  self.color, width=0 if get_theme().visual_style == "bubble" else 3),
                               self.tint.animate.set_fill(self.color, opacity=self.fill_opacity),
                               run_time=run_time)
 
@@ -112,7 +112,7 @@ class Connector(VGroup):
             h = text.get_height() + 0.22
             pill = RoundedRectangle(width=text.get_width() + 0.36, height=h, corner_radius=h / 2,
                                     fill_color=theme.surface, fill_opacity=1, stroke_color=c,
-                                    stroke_width=0 if theme.name == "bubble" else 1.5)
+                                    stroke_width=0 if theme.visual_style == "bubble" else 1.5)
             self.label = VGroup(pill, text.move_to(pill))
             normal = np.array([-d[1], d[0], 0])
             self.label.move_to((p0 + p1) / 2 + normal * abs(curve) * 0.5)
@@ -255,9 +255,9 @@ class VennDiagram(VGroup):
             c = np.array(c, dtype=float)
             col = colors[i] if colors else palette_color(i)
             circle = Circle(radius=radius, stroke_color=col,
-                            stroke_width=0 if theme.name == "bubble" else 3,
-                            fill_color=col, fill_opacity=0.55 if theme.name == "bubble" else 0.18).move_to(c)
-            label = Label(name, size="label", color=theme.text if theme.name == "bubble" else col, bold=True)
+                            stroke_width=0 if theme.visual_style == "bubble" else 3,
+                            fill_color=col, fill_opacity=0.55 if theme.visual_style == "bubble" else 0.18).move_to(c)
+            label = Label(name, size="label", color=theme.text if theme.visual_style == "bubble" else col, bold=True)
             direction = c / (np.linalg.norm(c) or 1)
             if n == 2:
                 direction = UP

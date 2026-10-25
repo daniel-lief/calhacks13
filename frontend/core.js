@@ -1,7 +1,7 @@
 "use strict";
 
 // Shared by every screen: API access, formatting helpers, likes, and the page
-// atmosphere (preloader, text reveals, cursor).
+// atmosphere (text reveals, cursor).
 
 const ACTIVE = new Set(["queued", "writing", "checking", "rendering", "reviewing"]);
 const STATUS_LABEL = {
@@ -94,6 +94,9 @@ function countView(job) {
 const HEART = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.6 4.5 7.1 4.5c2 0 3.6 1.1 4.9 2.8 1.3-1.7 2.9-2.8 4.9-2.8 3.5 0 5.7 3.5 4.4 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>`;
 const BOOKMARK = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17l-6-4.2-6 4.2z"/></svg>`;
 const EYE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+const TRASH = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>`;
+const REMOVE = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`;
 
 // --- Formatting ----------------------------------------------------------------
 
@@ -188,27 +191,6 @@ function splitText() {
     for (const e of entries) e.target.classList.toggle("is-visible", e.isIntersecting);
   }, { threshold: 0.3 });
   document.querySelectorAll(".split, .blur-anim").forEach((n) => io.observe(n));
-}
-
-// Counts to 100 on the landing page; skipped when the app opens straight to a screen
-function preload(full) {
-  const count = $("#preloader-count");
-  const preloader = $("#preloader");
-  const finish = () => {
-    document.body.dataset.preloading = "false";
-    preloader.remove();
-    window.Scene.refresh();
-  };
-  if (!full) return finish();
-  const start = performance.now();
-  const step = (now) => {
-    const p = Math.min(1, (now - start) / 1400);
-    count.textContent = Math.round(p * p * (3 - 2 * p) * 100);
-    if (p < 1) return requestAnimationFrame(step);
-    preloader.dataset.dismissing = "true";
-    setTimeout(finish, 500);
-  };
-  document.fonts.ready.then(() => requestAnimationFrame(step));
 }
 
 function customCursor() {

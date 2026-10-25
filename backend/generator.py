@@ -9,6 +9,7 @@ import anthropic
 
 from . import config, prompts
 from .validate import extract_code
+from .themes import theme_name
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
@@ -29,8 +30,13 @@ class SceneAuthor:
         self.on_event = on_event  # (kind, text): kind is "thinking" | "progress" | "usage"
         self.cost_usd = 0.0
 
-    def write(self, topic: str, length: str, extra: str = "") -> str:
-        return self._turn(prompts.initial_request(topic, length, extra), require_code=True)
+    def write(self, topic: str, length: str, extra: str = "", theme: str = "bubble") -> str:
+        request = prompts.initial_request(topic, length, extra)
+        request += (f'\n\nSelected color theme: {theme_name(theme)}. Set THEME = "{theme}". '
+                    'Use get_theme() and palette_color(i) for all colors, including new shapes and labels. '
+                    'Keep Fredoka SemiBold, JetBrains Mono, rounded cards and all animation styling unchanged. '
+                    'Retain this palette during repairs and visual review.')
+        return self._turn(request, require_code=True)
 
     def repair(self, error: str, stage: str) -> str:
         return self._turn(prompts.repair_request(error, stage), require_code=True)

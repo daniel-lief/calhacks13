@@ -16,8 +16,9 @@ from .generator import GenerationError, SceneAuthor
 from .chapters import narration_segments, suggest_chapters
 from .tagger import narration_text, suggest_tags
 from .voices import voice_name
+from .themes import theme_name
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
-from .validate import check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
+from .validate import apply_scene_theme, check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
 
 ACTIVE_STATUSES = {"queued", "writing", "checking", "rendering", "reviewing"}
 MAX_LOG_ENTRIES = 300
@@ -31,6 +32,7 @@ class JobOptions:
     voice: str = ""             # edge-tts voice name; "" means the server default (TTS_VOICE)
     review: bool = True
     extra: str = ""
+    theme: str = "bubble"
 
 
 @dataclass
@@ -287,7 +289,8 @@ class JobManager:
         self._update(job, model=config.CLAUDE_MODEL)
         self._update(job, status="writing", stage="Claude is planning the video…", progress=0.03,
                      log=f"Planning an explanation of “{job.topic}”")
-        code = author.write(job.topic, opts.length, opts.extra)
+        self._update(job, log=f"Color theme: {theme_name(opts.theme)}")
+        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme)
         self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 
@@ -306,6 +309,7 @@ class JobManager:
         """Validate, dry-run and render, asking Claude to repair failures. Returns (code, render)."""
         lo, hi = progress_span
         for attempt in range(budget + 1):
+            code = apply_scene_theme(code, job.options.theme)
             n = job.attempts = job.attempts + 1
             scene_path = job.dir / "work" / f"scene_v{n}.py"
             scene_path.parent.mkdir(parents=True, exist_ok=True)
@@ -315,7 +319,8 @@ class JobManager:
             if not problem:
                 self._update(job, status="checking", stage="Test-running the scene code…",
                              log=f"Attempt {n}: dry run")
-                dry = render_scene(scene_path, job.dir / "work" / f"dry_v{n}", dry_run=True)
+                dry = render_scene(scene_path, job.dir / "work" / f"dry_v{n}", dry_run=True,
+                                   theme=job.options.theme)
                 stage, problem = "a dry run of the scene", (None if dry.ok else dry.error)
             if not problem:
                 total = max(count_voiceovers(code), 1)
@@ -330,6 +335,7 @@ class JobManager:
                 render = render_scene(scene_path, job.dir / "work" / f"render_v{n}",
                                       quality=job.options.quality, narration=job.options.narration,
                                       voice=job.options.voice,
+                                      theme=job.options.theme,
                                       on_segment=on_segment)
                 for w in render.warnings:
                     self._update(job, log=w, kind="warning")

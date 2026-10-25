@@ -95,7 +95,15 @@ Preview and regression scenes:
 .venv\Scripts\python -m animai gallery\bubble_style_check.py BubbleStyleCheck --dry-run --out renders\checks
 ```
 
-Each theme pairs a font with a palette and a subtle backdrop (a soft vignette, or a fine
+In **New video → Options → Color theme**, choose Peach (the default), Ocean, Meadow,
+Lavender, Rose, or Sand. These palettes change backgrounds, text, panels, charts,
+diagrams, scientific figures, and code highlighting while keeping the same fonts,
+shapes, shadows, and layout. The choice is saved with the job and retained through
+repairs and review. Palette tokens live in `animai/assets/video-themes.json`.
+For hand-written scenes, set `THEME` to `bubble`, `ocean`, `meadow`, `lavender`,
+`rose`, or `sand`, or pass e.g. `--theme ocean` to the render command.
+
+Legacy CLI themes each pair a font with a palette and a subtle backdrop (a soft vignette, or a fine
 grid for `blueprint`). Cards, nodes and cells are raised panels with soft shadows, and
 `show()` enlarges diagrams and charts to fill their region. The fonts (Fira Sans, Fira
 Mono, Crimson Text and Patrick Hand, all under the SIL Open Font License) ship in

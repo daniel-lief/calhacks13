@@ -4,14 +4,14 @@
 // and the ones you've saved from the feed, with the same search as the feed.
 
 const lib = {
-  grid: $("#library-grid"), count: $("#library-count"), empty: $("#library-empty"), noMatch: $("#library-nomatch"),
+  grid: $("#library-grid"), empty: $("#library-empty"), noMatch: $("#library-nomatch"),
   tabs: $("#library-tabs"), search: $("#library-search"), clear: $("#library-search-clear"), tagRow: $("#library-tag-row"),
 };
 
 const EMPTY_LIBRARY = {
-  "": "Nothing here yet. <a class=\"inline-link\" href=\"#/create\">Make a video</a> or save one from the <a class=\"inline-link\" href=\"#/feed\">feed</a>.",
+  "": "Nothing here yet. <a class=\"inline-link\" href=\"#/create\">Make a video</a> or save one from <a class=\"inline-link\" href=\"#/discover\">Discover</a>.",
   created: "You haven't made a video yet. <a class=\"inline-link\" href=\"#/create\">Make your first one</a>.",
-  saved: "Nothing saved yet. Press Save on a video in the <a class=\"inline-link\" href=\"#/feed\">feed</a> to keep it here.",
+  saved: "Nothing saved yet. Press Save on a video in <a class=\"inline-link\" href=\"#/discover\">Discover</a> to keep it here.",
 };
 
 let libraryTimer = null;
@@ -60,9 +60,6 @@ function renderLibrary() {
     : [...createdJobs, ...savedJobs].sort((a, b) => b.created_at - a.created_at);
   const shown = librarySearch.apply(list);
 
-  lib.count.textContent = librarySearch.filtering
-    ? `${shown.length} of ${plural(list.length, "video")}`
-    : plural(list.length, "video");
   lib.empty.hidden = list.length > 0;
   lib.empty.innerHTML = EMPTY_LIBRARY[libraryShow];
   lib.grid.replaceChildren(...shown.map((job) => (job.sample ? savedTile(job) : libraryTile(job))));
@@ -117,7 +114,7 @@ function libraryTile(job) {
     vis.type = "button";
     const render = () => {
       vis.textContent = job.public ? "Public" : "Private";
-      vis.title = job.public ? "Shown in the feed. Click to make private." : "Only in your library. Click to post to the feed.";
+      vis.title = job.public ? "Visible on Discover. Click to make private." : "Only in your library. Click to make public.";
       vis.classList.toggle("on", job.public);
     };
     render();
@@ -134,7 +131,9 @@ function libraryTile(job) {
   if (!ACTIVE.has(job.status)) {
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.textContent = "Delete";
+    remove.innerHTML = TRASH;
+    remove.className = "icon-button";
+    remove.title = "Delete video";
     remove.setAttribute("aria-label", `Delete “${job.title || job.topic}”`);
     remove.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -176,7 +175,9 @@ function savedTile(job) {
   actions.className = "caption-meta t-16";
   const unsave = document.createElement("button");
   unsave.type = "button";
-  unsave.textContent = "Remove";
+  unsave.innerHTML = REMOVE;
+  unsave.className = "icon-button";
+  unsave.setAttribute("aria-label", `Remove “${job.title || job.topic}” from library`);
   unsave.title = "Remove from your library";
   unsave.addEventListener("click", async (e) => {
     e.preventDefault();

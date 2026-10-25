@@ -115,7 +115,7 @@ class AnimaiScene(Scene):
         `animation` is an animation class (FadeIn, Write, ShowCreation, GrowFromCenter...)
         or a ready-made animation such as `bullets.reveal()`; the default is a soft rise-in.
         """
-        framed = (self.theme.name == "bubble" and where is not None
+        framed = (self.theme.visual_style == "bubble" and where is not None
                   and not isinstance(mob, _TEXT_LIKE) and not hasattr(mob, "panel"))
         if where is not None:
             if scale_up is None:
@@ -199,15 +199,15 @@ class AnimaiScene(Scene):
     def title_card(self, title: str, subtitle: str | None = None, run_time: float = 1.6):
         """Big centered title (and optional subtitle) for the opening of a video."""
         theme = get_theme()
-        t = Label(title, size=96 if theme.name == "bubble" else "title", bold=True, max_width=11.5)
+        t = Label(title, size=96 if theme.visual_style == "bubble" else "title", bold=True, max_width=11.5)
         bar = RoundedRectangle(width=1.6, height=0.09, corner_radius=0.045,
                                fill_color=theme.accent, fill_opacity=1, stroke_width=0)
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             bar.set_opacity(0)
         group = VGroup(t, bar)
         if subtitle:
             group.add(Label(subtitle, size="body",
-                            color=theme.accent if theme.name == "bubble" else theme.muted,
+                            color=theme.accent if theme.visual_style == "bubble" else theme.muted,
                             max_width=11))
         group.arrange(DOWN, buff=0.38).move_to(region("full").center)
         anims = [Write(t), GrowFromCenter(bar)]

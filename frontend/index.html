@@ -4,80 +4,107 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Animai · Animated Explainers</title>
-  <meta name="description" content="Short animated explainers on anything. Watch what others made, or type a topic and Claude makes one for you.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%231a191c'/><path d='M4 16c3-9 7-9 12 0s9 9 12 0' stroke='%23f0f2f0' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
+  <meta name="description" content="An animation engine for educational videos made in code. Discover, watch and share explanations that make things click.">
+  <link rel="icon" type="image/png" href="/static/assets/animai-logo.png">
+  <meta name="theme-color" content="#fcf9f6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/bubble.css">
 </head>
-<body data-preloading="true">
-  <canvas id="scene" class="particle-scene" aria-hidden="true"></canvas>
-  <div class="preloader" id="preloader" aria-hidden="true"><span class="count t-30" id="preloader-count">0</span></div>
+<body>
+  <canvas id="scene" class="particle-scene bubble-scene" aria-hidden="true"></canvas>
 
   <!-- Landing: the scroll story ------------------------------------------- -->
   <main class="content landing" id="landing">
     <section class="hero" data-shape="mark">
       <div class="hero-copy">
-        <h1 class="t-30 blur-anim" data-delay="0.2">Animai</h1>
-        <a class="t-30 blur-anim" data-delay="0.6" href="#/feed">Browse the feed</a>
+        <h1>Animai</h1>
+        <p class="hero-subtitle">Knowledge in motion, built with code.</p>
+        <a class="hero-discover" href="#/discover">Discover</a>
       </div>
     </section>
 
-    <section class="statement" data-shape="markRight">
-      <div class="statement-copy">
-        <p class="t-30 split">Short animated explainers on anything. Watch what others made, or type a topic and Claude writes a narrated animation in the style of 3Blue1Brown, then renders it to video.</p>
+    <section class="story-section story-engine" aria-labelledby="engine-heading">
+      <div class="story-copy">
+        <h2 id="engine-heading">Great explanations.<br>Written in code.</h2>
+        <p>Animai is an engine for turning ideas into high-quality animated educational videos. Write a scene in Python, bring it to life with reusable visual building blocks, and let the animation do the explaining.</p>
+        <p>From a sorting algorithm to a chemical reaction, you control what moves, what matters, and when the idea clicks. Charts, diagrams, maps, narration and timing all work together in one scene.</p>
+        <a class="story-link" href="#/create">Make something clear <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="story-art engine-art" aria-hidden="true">
+        <div class="art-orbit art-orbit-one"></div>
+        <div class="art-dot dot-pink"></div><div class="art-dot dot-blue"></div>
+        <div class="code-art-window">
+          <div class="art-window-bar"><span><i></i><i></i><i></i></span><span>scene.py</span><span>Python</span></div>
+          <pre><span class="code-key">from</span> animai <span class="code-key">import</span> *
+
+<span class="code-key">class</span> <span class="code-blue">AnIdea</span>(AnimaiScene):
+    <span class="code-key">def</span> <span class="code-blue">construct</span>(self):
+        bars = <span class="code-blue">BarPlot</span>([<span class="code-gold">3, 1, 5, 2</span>])
+        self.<span class="code-blue">show</span>(bars)
+        self.<span class="code-blue">play</span>(bars.<span class="code-blue">grow</span>())</pre>
+        </div>
+        <div class="render-art-window">
+          <div class="art-label">A few lines. A little clarity.</div>
+          <div class="art-bars"><i style="--bar:42%;--ink:#ECD288"></i><i style="--bar:22%;--ink:#F0B3BC"></i><i style="--bar:88%;--ink:#A6C7EA"></i><i style="--bar:58%;--ink:#C7B6ED"></i><i style="--bar:72%;--ink:#AAD9B0"></i></div>
+          <span class="art-render-badge">Code → motion</span>
+        </div>
       </div>
     </section>
 
-    <section class="world" data-shape="sphere">
-      <svg class="ring" viewBox="-500 -500 1000 1000" aria-hidden="true">
-        <defs><path id="ring-path" d="M-440,0a440,440 0 1,1 880,0a440,440 0 1,1 -880,0"/></defs>
-        <text class="ring-text"><textPath href="#ring-path" startOffset="25%" text-anchor="middle">Math, physics, chemistry</textPath></text>
-        <text class="ring-text"><textPath href="#ring-path" startOffset="75%" text-anchor="middle">Code, data, history</textPath></text>
-      </svg>
-    </section>
-
-    <section class="tree" data-shape="tree">
-      <p class="t-30 tree-label">Algorithms, step by step</p>
-    </section>
-
-    <section class="work">
-      <div class="work-sticky">
-        <p class="t-30 work-line">It doesn’t stop at writing code. Claude test-renders the scene, looks at the frames, and fixes anything that overlaps or runs off screen before you see it.</p>
+    <section class="story-section story-discover" aria-labelledby="discover-heading">
+      <div class="story-art discovery-art" aria-hidden="true">
+        <div class="art-orbit art-orbit-two"></div>
+        <div class="lesson-card lesson-back"><span class="lesson-subject">Computer science</span><div class="mini-sort"><i>3</i><i>1</i><i>5</i><i>2</i></div><strong>One swap at a time.</strong></div>
+        <div class="lesson-card lesson-front"><span class="lesson-subject">Physics</span><svg viewBox="0 0 340 160" fill="none"><path d="M10 80C40 0 70 0 100 80S160 160 190 80S250 0 280 80S320 140 330 95" stroke="#A6C7EA" stroke-width="12" stroke-linecap="round"/><path d="M10 80H330" stroke="#D9D9D9" stroke-width="2" stroke-dasharray="5 7"/><circle cx="190" cy="80" r="14" fill="#EF7D99"/></svg><strong>See the idea. Feel it click.</strong><span class="lesson-meta">A new perspective, one video away.</span></div>
+        <div class="lesson-scroll-tag">Keep your curiosity moving <span>↓</span></div>
       </div>
-      <div class="marker" data-shape="ribbon" data-hold="0.3" style="top: 105svh"></div>
+      <div class="story-copy">
+        <h2 id="discover-heading">A whole world<br>of “oh, I get it.”</h2>
+        <p>Discover educational videos made by people who love explaining things. Explore math, science, code, history and the ideas in between, all told through movement, pictures and a fresh point of view.</p>
+        <p>Dive into a topic, save an explanation for later, or scroll from one discovery to the next. There’s always another way to see something you thought you knew.</p>
+        <div class="story-actions"><a class="story-link" href="#/discover">Explore Discover <span aria-hidden="true">↗</span></a><a class="story-link secondary" href="#/watch">Start scrolling <span aria-hidden="true">↓</span></a></div>
+      </div>
     </section>
 
-    <section class="playground" id="playground">
-      <div class="stage">
-        <p class="kicker t-16 active-fade" id="kicker">From the feed</p>
-        <div class="track" id="marquee"></div>
-        <p class="closing t-30 active-fade" id="closing">And room for plenty more.</p>
+    <section class="story-section story-make" aria-labelledby="make-heading">
+      <div class="story-copy">
+        <h2 id="make-heading">You have an idea.<br>Make it an aha.</h2>
+        <p>The best explanation might be the one only you can make. Build a lesson, show how an algorithm works, or give a difficult concept a simpler shape.</p>
+        <p>Write every scene yourself or start with a topic in New video. Choose a voice, shape the explanation, and keep it in your library. When you’re ready, make it public so someone else can learn from it too.</p>
+        <a class="story-link" href="#/create">Make your own video <span aria-hidden="true">→</span></a>
       </div>
-      <div class="marker" id="marker-flat" data-shape="ribbonFlat"></div>
-      <div class="marker" id="marker-loops" data-shape="ribbonLoops"></div>
+      <div class="story-art make-art" aria-hidden="true">
+        <div class="art-dot dot-yellow"></div><div class="art-dot dot-purple"></div>
+        <div class="idea-board">
+          <div class="art-label">Your next explanation</div>
+          <div class="idea-flow"><span>An idea</span><b>→</b><span>A scene</span><b>→</b><span>An aha!</span></div>
+          <svg viewBox="0 0 400 120" fill="none"><path d="M20 90C100 90 80 25 155 50S255 110 300 35S350 35 380 18" stroke="#F0B3BC" stroke-width="7" stroke-linecap="round"/><circle cx="155" cy="50" r="10" fill="#C7B6ED"/><circle cx="300" cy="35" r="10" fill="#AAD9B0"/></svg>
+          <div class="idea-pills"><span>Your voice</span><span>Your pace</span><span>Your perspective</span></div>
+        </div>
+        <img class="make-art-logo" src="/static/assets/animai-logo.png" alt="" width="244" height="172">
+        <div class="make-art-note">Made by you.<br>Learned by someone new.</div>
+      </div>
     </section>
 
     <div class="contacts-wrap">
       <section class="contacts" id="start" data-shape="frame">
         <div class="frame-box" id="landing-frame">
-          <p class="t-16 muted caps blur-anim">Start learning</p>
-          <a class="enter t-85" href="#/watch">Start watching</a>
-          <p class="t-20 muted">or <a class="inline-link" href="#/feed">browse the feed</a>, or <a class="inline-link" href="#/create">make your own</a></p>
+          <p class="t-16 muted caps blur-anim">Stay curious. Make something.</p>
+          <a class="enter t-85" href="#/discover">Find your next aha.</a>
+          <p class="t-20 muted"><a class="inline-link" href="#/watch">Start scrolling</a> or <a class="inline-link" href="#/create">make your own video</a></p>
         </div>
       </section>
 
       <footer class="footer">
         <a class="monogram" href="#/" id="monogram">
           <span class="tooltip t-16">Back to top</span>
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <circle class="mono-circle" cx="16" cy="16" r="14.5"/>
-            <path class="mono-wave" d="M4 16c3-9 7-9 12 0s9 9 12 0"/>
-          </svg>
-          <span class="footer-line t-16 footer-meta">Animai</span>
+          <img src="/static/assets/animai-logo.png" alt="" aria-hidden="true" width="32" height="32">
+          <span class="footer-line t-16">Animai</span>
         </a>
-        <p class="footer-line t-16 health"></p>
+        <p class="footer-line t-16">Made for curious minds.</p>
       </footer>
     </div>
   </main>
@@ -85,16 +112,10 @@
   <!-- App: feed, scroll, create, library ----------------------------------- -->
   <div class="app content" id="app" hidden>
     <nav class="sidebar" aria-label="Main">
-      <a class="brand t-20" href="#/">
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <circle class="mono-circle" cx="16" cy="16" r="14.5"/>
-          <path class="mono-wave" d="M4 16c3-9 7-9 12 0s9 9 12 0"/>
-        </svg>
-        <span>Animai</span>
-      </a>
+      <a class="brand" href="#/" aria-label="Animai home">Animai</a>
       <div class="nav-group">
         <p class="t-16 muted caps nav-label">Explore</p>
-        <a class="t-20" data-nav="feed" href="#/feed">Feed</a>
+        <a class="t-20" data-nav="feed" href="#/discover">Discover</a>
         <a class="t-20" data-nav="watch" href="#/watch">Scroll</a>
       </div>
       <div class="nav-group">
@@ -102,17 +123,15 @@
         <a class="t-20" data-nav="create" href="#/create">New video</a>
         <a class="t-20" data-nav="library" href="#/library">Library</a>
       </div>
-      <p class="t-16 muted caps nav-health health"></p>
     </nav>
 
     <!-- Feed -->
     <section class="screen" id="screen-feed" hidden>
       <header class="screen-head">
-        <h1 class="t-49">Feed</h1>
-        <p class="t-16 muted caps" id="feed-count"></p>
+        <h1 class="t-49">Discover</h1>
       </header>
       <div class="search" role="search">
-        <label class="visually-hidden" for="search">Search the feed</label>
+        <label class="visually-hidden" for="search">Search Discover</label>
         <input id="search" type="search" class="search-input t-30" placeholder="Search by topic, title or tag" autocomplete="off" spellcheck="false">
         <button id="search-clear" type="button" class="link-button muted t-16 caps" hidden>Clear</button>
       </div>
@@ -141,15 +160,24 @@
           </div>
           <div class="watch-details">
             <div class="tag-list t-16" id="watch-tags"></div>
-            <p class="t-16 muted" id="watch-prompt"></p>
-            <p class="t-16 muted" id="watch-voice"></p>
             <ol class="chapter-list t-16" id="watch-chapters" aria-label="Chapters"></ol>
-            <div class="watch-owner t-16" id="watch-owner" hidden>
-              <button id="watch-public" type="button" class="link-button caps"></button>
-              <button id="watch-edit-tags" type="button" class="link-button caps">Edit tags</button>
+            <div class="watch-description-actions t-16">
               <button id="watch-toggle-code" type="button" class="link-button caps">View code</button>
               <a id="watch-download" class="link-button caps" download>Download</a>
-              <button id="watch-delete" type="button" class="link-button muted caps">Delete</button>
+            </div>
+          </div>
+          <section class="watch-owner t-16" id="watch-owner" aria-labelledby="watch-owner-heading" hidden>
+            <div class="watch-owner-heading">
+              <div><p class="watch-owner-badge caps">Your video</p><h2 id="watch-owner-heading" class="t-20">Manage your video</h2></div>
+              <button id="watch-delete" type="button" class="link-button muted icon-button" aria-label="Delete video" title="Delete video"></button>
+            </div>
+            <div class="watch-owner-row">
+              <div><p class="caps muted">Visibility</p><p id="watch-visibility"></p><p id="watch-visibility-hint" class="muted"></p></div>
+              <button id="watch-public" type="button" class="link-button"></button>
+            </div>
+            <div class="watch-owner-row">
+              <div><p class="caps muted">Tags</p><p id="watch-owner-tags" class="muted"></p></div>
+              <button id="watch-edit-tags" type="button" class="link-button">Edit tags</button>
             </div>
             <form id="watch-tag-form" class="tag-form t-16" hidden>
               <label class="visually-hidden" for="watch-tag-input">Tags, separated by commas, most relevant first</label>
@@ -157,7 +185,7 @@
               <button type="submit" class="link-button caps">Save</button>
               <button id="watch-tag-cancel" type="button" class="link-button muted caps">Cancel</button>
             </form>
-          </div>
+          </section>
           <div id="watch-code" class="code-panel" hidden>
             <div class="code-bar t-16"><span class="muted">scene.py</span><button id="watch-copy-code" type="button" class="link-button">Copy</button></div>
             <pre><code id="watch-code-text"></code></pre>
@@ -172,7 +200,7 @@
           <div class="up-next" id="up-next"></div>
         </aside>
       </div>
-      <p class="empty t-30" id="watch-missing" hidden>This video isn't available. <a class="inline-link" href="#/feed">Back to the feed</a>.</p>
+      <p class="empty t-30" id="watch-missing" hidden>This video isn't available. <a class="inline-link" href="#/discover">Back to Discover</a>.</p>
     </section>
 
     <!-- Create -->
@@ -204,9 +232,14 @@
             </fieldset>
             <fieldset>
               <legend class="muted caps">Extras</legend>
-              <label><input type="checkbox" name="public" checked><span>Post to the feed</span></label>
+              <label><input type="checkbox" name="public"><span>Make public</span></label>
               <label><input type="checkbox" name="narration" checked><span>Voice narration</span></label>
               <label><input type="checkbox" name="review" checked><span>Visual review pass</span></label>
+            </fieldset>
+            <fieldset class="wide">
+              <legend class="muted caps">Color theme</legend>
+              <p class="theme-hint">Same style and fonts. A different palette.</p>
+              <div class="theme-grid" id="theme-grid" aria-label="Video color themes"><p class="theme-hint" role="status">Loading color themes…</p></div>
             </fieldset>
             <fieldset class="wide">
               <legend class="muted caps">Voice</legend>
@@ -217,6 +250,7 @@
               <textarea name="extra" rows="2" maxlength="1000"
                         placeholder="Audience, angle, or what to focus on. For example: assume I know basic linear algebra; focus on why it's O(n log n)."></textarea>
             </fieldset>
+            <button id="submit-bottom" class="generate-wide" type="submit">Generate video</button>
           </div>
           <p id="banner" class="banner t-16" hidden></p>
         </form>
@@ -286,7 +320,6 @@
     <section class="screen" id="screen-library" hidden>
       <header class="screen-head">
         <h1 class="t-49">Library</h1>
-        <p class="t-16 muted caps" id="library-count"></p>
       </header>
       <div class="library-tabs t-20" id="library-tabs" role="group" aria-label="Show">
         <button type="button" data-show="">All</button>
@@ -307,7 +340,7 @@
 
   <div class="cursor" id="cursor" aria-hidden="true"><div class="cursor-head"></div></div>
 
-  <script src="/static/scene.js"></script>
+  <script src="/static/bubble-scene.js"></script>
   <script src="/static/core.js"></script>
   <script src="/static/player.js"></script>
   <script src="/static/create.js"></script>

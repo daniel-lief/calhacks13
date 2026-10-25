@@ -92,8 +92,8 @@ class PhysicsWorld(VGroup):
         self.space.add(body, shape)
         c = color or palette_color(len(self._bodies))
         mob = VGroup(Circle(radius=radius, fill_color=c,
-                            fill_opacity=1 if get_theme().name == "bubble" else 0.85, stroke_color=c,
-                            stroke_width=0 if get_theme().name == "bubble" else 2),
+                            fill_opacity=1 if get_theme().visual_style == "bubble" else 0.85, stroke_color=c,
+                            stroke_width=0 if get_theme().visual_style == "bubble" else 2),
                      Line(ORIGIN, RIGHT * radius * 0.85, stroke_color=get_theme().background,
                           stroke_width=3))  # Marker so rotation is visible
         mob.move_to(_v3(position))
@@ -111,8 +111,8 @@ class PhysicsWorld(VGroup):
         c = color or palette_color(len(self._bodies))
         mob = RoundedRectangle(width=width, height=height,
                                corner_radius=min(width, height) * .16,
-                               fill_color=c, fill_opacity=1 if get_theme().name == "bubble" else 0.85,
-                               stroke_color=c, stroke_width=0 if get_theme().name == "bubble" else 2
+                               fill_color=c, fill_opacity=1 if get_theme().visual_style == "bubble" else 0.85,
+                               stroke_color=c, stroke_width=0 if get_theme().visual_style == "bubble" else 2
                                ).rotate(angle).move_to(_v3(position))
         return self._register(body, mob)
 
@@ -254,8 +254,8 @@ class Pendulum(VGroup):
         self.rod = Line(ORIGIN, self._bob_design(), stroke_color=theme.text, stroke_width=3)
         c = color or theme.primary
         self.bob = Circle(radius=bob_radius, fill_color=c,
-                          fill_opacity=1 if theme.name == "bubble" else 0.9, stroke_color=c,
-                          stroke_width=0 if theme.name == "bubble" else 1)
+                          fill_opacity=1 if theme.visual_style == "bubble" else 0.9, stroke_color=c,
+                          stroke_width=0 if theme.visual_style == "bubble" else 1)
         self.bob.move_to(self._bob_design())
         super().__init__(self.ceiling, self.rod, self.pivot_dot, self.bob, *self.tracker.mobjects,
                          **kwargs)
@@ -336,8 +336,8 @@ class MassSpring(VGroup):
         self.floor = Line(DOWN * 0.6, DOWN * 0.6 + RIGHT * (rest_length + amplitude + 1.6),
                           stroke_color=theme.muted, stroke_width=3)
         self.block = RoundedRectangle(width=0.9, height=0.9, corner_radius=0.16,
-                                      fill_color=theme.primary, fill_opacity=1 if theme.name == "bubble" else 0.85,
-                                      stroke_color=theme.primary, stroke_width=0 if theme.name == "bubble" else 1)
+                                      fill_color=theme.primary, fill_opacity=1 if theme.visual_style == "bubble" else 0.85,
+                                      stroke_color=theme.primary, stroke_width=0 if theme.visual_style == "bubble" else 1)
         self.block.move_to(self._block_design())
         self.spring = Spring(ORIGIN, self._block_design() + LEFT * 0.45, coils=12)
         self.equilibrium = DashedLine(RIGHT * rest_length + UP * 0.9 + RIGHT * 0.45,
@@ -416,9 +416,9 @@ class FreeBodyDiagram(VGroup):
         theme = get_theme()
         if body is None:
             body = VGroup(RoundedRectangle(width=1.2, height=1.2, corner_radius=.2,
-                                 fill_color=theme.primary if theme.name == "bubble" else theme.surface,
+                                 fill_color=theme.primary if theme.visual_style == "bubble" else theme.surface,
                                  fill_opacity=1, stroke_color=theme.outline,
-                                 stroke_width=0 if theme.name == "bubble" else 3),
+                                 stroke_width=0 if theme.visual_style == "bubble" else 3),
                           Label(body_label, size="label"))
         self.body = body
         self.forces = {}

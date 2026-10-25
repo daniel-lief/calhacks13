@@ -59,7 +59,7 @@ class Title(VGroup):
         theme = get_theme()
         self.text = Label(text, size=size, color=color, bold=True, max_width=12.5)
         parts = [self.text]
-        if underline and theme.name != "bubble":
+        if underline and theme.visual_style != "bubble":
             w = min(max(self.text.get_width() * 0.22, 0.9), 2.2)
             self.underline = RoundedRectangle(width=w, height=0.075, corner_radius=0.0375,
                                               fill_color=theme.accent, fill_opacity=1, stroke_width=0)
@@ -68,7 +68,7 @@ class Title(VGroup):
         super().__init__(*parts, **kwargs)
         if to_top:
             self.move_to(np.array([0, 3.22, 0]))
-        if theme.name != "bubble":
+        if theme.visual_style != "bubble":
             self.text.set_backstroke(theme.background, 8)
 
 
@@ -125,7 +125,7 @@ class Card(VGroup):
         self.content = content
         body = content
         if title:
-            self.title = Label(title if theme.name == "bubble" else title.upper(),
+            self.title = Label(title if theme.visual_style == "bubble" else title.upper(),
                                size="tiny", color=c, bold=True)
             body = VGroup(self.title, content).arrange(DOWN, aligned_edge=LEFT, buff=0.22)
         w = max(width or 0, body.get_width() + 2 * padding)
@@ -135,7 +135,7 @@ class Card(VGroup):
                                        fill_color=c, fill_opacity=1, stroke_width=0)
         self.panel.move_to(body)
         self.stripe.move_to(self.panel.shape.get_left() + RIGHT * 0.17)
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             self.stripe.set_opacity(0)
         body.shift(RIGHT * 0.08)
         super().__init__(self.panel, self.stripe, body, **kwargs)
@@ -152,7 +152,7 @@ class Badge(VGroup):
         pill = RoundedRectangle(width=label.get_width() + 0.5, height=h, corner_radius=h / 2,
                                 fill_color=c, fill_opacity=0.16, stroke_color=c, stroke_width=2)
         pill.move_to(label)
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             pill.set_fill(theme.pill, 1).set_stroke(width=0)
             label.set_color(theme.accent if color is None else theme.text)
         super().__init__(pill, label, **kwargs)
@@ -198,7 +198,7 @@ class QuoteCard(VGroup):
                     fill_color=theme.accent)
         body = Text(_wrap(quote, 40), font=theme.serif_font, font_size=38,
                     weight=theme.text_weight,
-                    slant="NORMAL" if theme.name == "bubble" else "ITALIC",
+                    slant="NORMAL" if theme.visual_style == "bubble" else "ITALIC",
                     fill_color=theme.text, alignment="LEFT")
         if body.get_width() > width:
             body.set_width(width)
@@ -236,7 +236,7 @@ class Callout(VGroup):
                                 fill_color=theme.surface, fill_opacity=1, stroke_color=c,
                                 stroke_width=2)
         self.label = VGroup(pill, text_mob.move_to(pill))
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             pill.set_stroke(width=0)
             text_mob.set_color(theme.accent)
         self.label.move_to(edge + d * distance)
@@ -261,13 +261,13 @@ class CodeBlock(VGroup):
                  padding: float = 0.35, style: str | None = None, **kwargs):
         theme = get_theme()
         self.source_lines = code.strip("\n").split("\n")
-        if theme.name == "bubble" and style is None:
-            from .syntax import FigmaCodeStyle
-            style = FigmaCodeStyle
+        if theme.visual_style == "bubble" and style is None:
+            from .syntax import style_for_theme
+            style = style_for_theme(theme)
         self.code = Code(code.strip("\n"), font=theme.mono_font,
-                         font_size=20 if theme.name == "bubble" and font_size == 24 else font_size,
+                         font_size=20 if theme.visual_style == "bubble" and font_size == 24 else font_size,
                          language=language, code_style=style or "monokai")
-        bar_h = 0 if theme.name == "bubble" else 0.42
+        bar_h = 0 if theme.visual_style == "bubble" else 0.42
         w = self.code.get_width() + 2 * padding
         h = self.code.get_height() + 2 * padding + bar_h
         self.panel = Panel(w, h, color=theme.outline if theme.light else "#2A2F3A",
@@ -279,7 +279,7 @@ class CodeBlock(VGroup):
             Dot(radius=0.065, fill_color=c).move_to(top_left + np.array([0.3 + 0.24 * i, -bar_h / 2 - 0.02, 0]))
             for i, c in enumerate(("#FF5F57", "#FEBC2E", "#28C840"))
         ))
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             self.window_dots.set_opacity(0)
         self.highlight = RoundedRectangle(
             width=w - 0.2, height=self._line_height * 1.1, corner_radius=0.06,

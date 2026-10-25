@@ -4,7 +4,7 @@
 // them one at a time. Each 16:9 video sits in a 9:16 frame with black above and below.
 
 const fe = {
-  grid: $("#feed-grid"), count: $("#feed-count"), empty: $("#feed-empty"), noMatch: $("#feed-nomatch"),
+  grid: $("#feed-grid"), empty: $("#feed-empty"), noMatch: $("#feed-nomatch"),
   search: $("#search"), clear: $("#search-clear"), tagRow: $("#tag-row"),
   reel: $("#reel"), reelEmpty: $("#reel-empty"), hint: $("#reel-hint"),
 };
@@ -139,7 +139,7 @@ function makeSearch(els, onChange) {
 // --- Feed --------------------------------------------------------------------
 
 const feedSearch = makeSearch({ input: fe.search, clear: fe.clear, tagRow: fe.tagRow, noMatch: fe.noMatch }, () => {
-  history.replaceState(null, "", `#/feed${filterQuery(feedSearch.filter)}`);
+  history.replaceState(null, "", `#/discover${filterQuery(feedSearch.filter)}`);
   renderFeed();
 });
 
@@ -151,9 +151,6 @@ async function showFeed() {
 
 function renderFeed() {
   const shown = feedSearch.apply(feedPosts);
-  fe.count.textContent = feedSearch.filtering
-    ? `${shown.length} of ${plural(feedPosts.length, "video")}`
-    : plural(feedPosts.length, "video");
   fe.empty.hidden = feedPosts.length > 0;
   fe.grid.replaceChildren(...shown.map(feedTile));
 }
@@ -279,7 +276,7 @@ function reelItem(job) {
   for (const t of topTags(job)) {
     const link = document.createElement("a");
     link.className = "chip";
-    link.href = `#/feed?tag=${encodeURIComponent(t)}`;
+    link.href = `#/discover?tag=${encodeURIComponent(t)}`;
     link.textContent = t;
     tags.appendChild(link);
   }
@@ -296,9 +293,6 @@ function reelItem(job) {
 
   const bottom = document.createElement("div");
   bottom.className = "short-bottom";
-  const prompt = document.createElement("p");
-  prompt.className = "t-16 muted";
-  prompt.textContent = `Prompt: ${job.topic}`;
   const transcript = document.createElement("ol");
   transcript.className = "transcript t-16";
   transcript.setAttribute("aria-label", "Transcript");
@@ -306,7 +300,7 @@ function reelItem(job) {
   bar.className = "short-progress";
   const fill = document.createElement("div");
   bar.appendChild(fill);
-  bottom.append(prompt, transcript);
+  bottom.append(transcript);
 
   short.append(backdrop, top, video, bar, bottom);
 
@@ -352,7 +346,7 @@ function reelItem(job) {
   rail.append(like, ...(canSave(job) ? [saveToggle(job, "rail-button")] : []), views, transcriptButton, sound);
   node.append(short, rail);
 
-  const r = { job, node, video, views, sound, backdrop, prompt, transcript, transcriptButton, lines: null, current: -1 };
+  const r = { job, node, video, views, sound, backdrop, transcript, transcriptButton, lines: null, current: -1 };
   video.addEventListener("timeupdate", () => {
     fill.style.width = `${(video.currentTime / (video.duration || 1)) * 100}%`;
     followTranscript(r);
@@ -366,7 +360,6 @@ function renderRail(r) {
   r.sound.setAttribute("aria-pressed", String(!reelMuted));
   r.transcriptButton.setAttribute("aria-pressed", String(transcriptOn));
   r.transcriptButton.classList.toggle("on", transcriptOn);
-  r.prompt.hidden = transcriptOn && !!r.job.timings_url;
   r.transcript.hidden = !transcriptOn;
   // The transcript replaces the burned-in captions while it's open
   for (const track of r.video.textTracks) track.mode = transcriptOn ? "hidden" : "showing";

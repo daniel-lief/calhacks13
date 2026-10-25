@@ -36,7 +36,7 @@ def soft_shadow(shape: Mobject, offset=SHADOW_OFFSET, strength: float = 1.0) -> 
     """A two-layer drop shadow shaped like `shape` (draw it behind the shape)."""
     theme = get_theme()
     layers = VGroup()
-    if theme.name == "bubble":
+    if theme.visual_style == "bubble":
         # Figma: x=0, y=0, blur=7.9px, spread=0, black 7%.
         # Vector feather approximation; reference pixels are mapped to scene units.
         blur = 7.9 * FRAME_WIDTH / 1576
@@ -68,7 +68,7 @@ class Panel(VGroup):
                  surface=None, **kwargs):
         theme = get_theme()
         c = color or theme.outline
-        if theme.name == "bubble":
+        if theme.visual_style == "bubble":
             stroke_width = 0
             corner_radius = max(corner_radius, 25 * FRAME_WIDTH / 1576)
             if color is None or color == theme.outline:
@@ -103,11 +103,12 @@ def make_backdrop(theme=None) -> VGroup:
             strip.move_to(UP * (FRAME_HEIGHT / 2 - (i + 0.5) * FRAME_HEIGHT / n))
             group.add(strip)
         # Sparse corner confetti extends THE IMAGE without crowding the teaching area.
+        d = theme.decorative
         for x, y, radius, color in (
-            (-5.65, 3.45, .28, "#D9D9D9"), (-6.45, 2.65, .17, "#FDDFAB"),
-            (-4.70, 2.95, .23, "#E8EDCC"), (-6.25, 3.20, .13, "#D9D9D9"),
-            (5.95, 3.35, .28, "#FCDDA8"), (4.75, 3.00, .20, "#E8EDCC"),
-            (6.35, 2.65, .15, "#D9D9D9"),
+            (-5.65, 3.45, .28, d[0]), (-6.45, 2.65, .17, d[1]),
+            (-4.70, 2.95, .23, d[2]), (-6.25, 3.20, .13, d[0]),
+            (5.95, 3.35, .28, d[3]), (4.75, 3.00, .20, d[2]),
+            (6.35, 2.65, .15, d[0]),
         ):
             group.add(Circle(radius=radius, fill_color=color, fill_opacity=1,
                              stroke_width=0).move_to(RIGHT * x + UP * y))
