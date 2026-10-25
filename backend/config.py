@@ -19,9 +19,8 @@ WORKER_POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "3"))
 
 DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "data")).resolve()
 JOBS_DIR = DATA_DIR / "jobs"
-STATS_PATH = DATA_DIR / "stats.json"       # likes and views, for every post including samples
-SAVED_PATH = DATA_DIR / "saved.json"       # posts saved to the library, newest first
-SAMPLES_DIR = Path(__file__).resolve().parent / "samples"   # pre-made public posts, checked in
+STATS_PATH = DATA_DIR / "stats.json"       # pre-Convex likes/views, read once by import_to_convex.py
+SAMPLES_DIR = Path(__file__).resolve().parent / "samples"   # the six samples, imported into Convex as @animai
 AUDIO_CACHE_DIR = DATA_DIR / "audio_cache"
 FRONTEND_DIR = ROOT / "frontend"
 
