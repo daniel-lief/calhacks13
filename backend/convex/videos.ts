@@ -1,8 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { v } from "convex/values";
-import type { Doc } from "./_generated/dataModel";
-import { query } from "./_generated/server";
-import { canView, requireUser, toPublicVideo } from "./lib";
+import { ConvexError, v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
+import { mutation, query, type MutationCtx } from "./_generated/server";
+import { canView, cleanTags, isActive, requireUser, toPublicVideo } from "./lib";
 
 const LIST_LIMIT = 200;
 const LOG_LIMIT = 300;
@@ -76,5 +76,104 @@ export const logs = query({
       .order("desc")
       .take(LOG_LIMIT);
     return rows.reverse().map((r) => ({ t: r.t, kind: r.kind, msg: r.msg }));
+  },
+});
+
+// --- Social -------------------------------------------------------------------
+
+/** Like or unlike a video you can see. Returns the new like count. */
+export const like = mutation({
+  args: { id: v.id("videos"), liked: v.boolean() },
+  handler: async (ctx, { id, liked }) => {
+    const viewer = await requireUser(ctx);
+    const video = await ctx.db.get(id);
+    if (!video || !canView(video, viewer)) throw new ConvexError("Video not found");
+    const existing = await ctx.db
+      .query("likes")
+      .withIndex("by_user_and_video", (q) => q.eq("user", viewer).eq("video", id))
+      .first();
+    let likes = video.likes;
+    if (liked && !existing) {
+      await ctx.db.insert("likes", { user: viewer, video: id });
+      likes += 1;
+    } else if (!liked && existing) {
+      await ctx.db.delete(existing._id);
+      likes = Math.max(0, likes - 1);
+    }
+    if (likes !== video.likes) await ctx.db.patch(id, { likes });
+    return { likes };
+  },
+});
+
+/** Save someone else's public video to your library, or remove it. */
+export const save = mutation({
+  args: { id: v.id("videos"), saved: v.boolean() },
+  handler: async (ctx, { id, saved }) => {
+    const viewer = await requireUser(ctx);
+    const video = await ctx.db.get(id);
+    if (!video || !canView(video, viewer)) throw new ConvexError("Video not found");
+    if (video.owner === viewer) throw new ConvexError("You can't save your own video");
+    const existing = await ctx.db
+      .query("saves")
+      .withIndex("by_user_and_video", (q) => q.eq("user", viewer).eq("video", id))
+      .first();
+    if (saved && !existing) await ctx.db.insert("saves", { user: viewer, video: id, savedAt: Date.now() });
+    if (!saved && existing) await ctx.db.delete(existing._id);
+    return { saved };
+  },
+});
+
+/** Count a view. Anyone can view a public video; owners can view their own. */
+export const recordView = mutation({
+  args: { id: v.id("videos") },
+  handler: async (ctx, { id }) => {
+    const viewer = await getAuthUserId(ctx);
+    const video = await ctx.db.get(id);
+    if (!video || !canView(video, viewer)) return null;
+    await ctx.db.patch(id, { views: video.views + 1 });
+    return null;
+  },
+});
+
+// --- Owner edits ----------------------------------------------------------------
+
+async function ownVideo(ctx: MutationCtx, id: Id<"videos">): Promise<Doc<"videos">> {
+  const viewer = await requireUser(ctx);
+  const video = await ctx.db.get(id);
+  if (!video || video.owner !== viewer) throw new ConvexError("Video not found");
+  return video;
+}
+
+export const setPublic = mutation({
+  args: { id: v.id("videos"), public: v.boolean() },
+  handler: async (ctx, args) => {
+    await ownVideo(ctx, args.id);
+    await ctx.db.patch(args.id, { public: args.public });
+    return null;
+  },
+});
+
+export const setTags = mutation({
+  args: { id: v.id("videos"), tags: v.array(v.string()) },
+  handler: async (ctx, { id, tags }) => {
+    await ownVideo(ctx, id);
+    const cleaned = cleanTags(tags);
+    await ctx.db.patch(id, { tags: cleaned });
+    return cleaned;
+  },
+});
+
+/** Delete a finished or failed video, its files, logs, and everyone's likes and saves of it. */
+export const remove = mutation({
+  args: { id: v.id("videos") },
+  handler: async (ctx, { id }) => {
+    const video = await ownVideo(ctx, id);
+    if (isActive(video.status)) throw new ConvexError("This video is still being made");
+    for (const fileId of Object.values(video.files)) if (fileId) await ctx.storage.delete(fileId);
+    for await (const row of ctx.db.query("jobLogs").withIndex("by_video", (q) => q.eq("video", id))) await ctx.db.delete(row._id);
+    for await (const row of ctx.db.query("likes").withIndex("by_video", (q) => q.eq("video", id))) await ctx.db.delete(row._id);
+    for await (const row of ctx.db.query("saves").withIndex("by_video", (q) => q.eq("video", id))) await ctx.db.delete(row._id);
+    await ctx.db.delete(id);
+    return null;
   },
 });

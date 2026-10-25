@@ -43,3 +43,64 @@ describe("reading videos", () => {
     expect((await as(t, a).query(api.videos.logs, { id: pub })).map((l) => l.msg)).toEqual(["hello"]);
   });
 });
+
+describe("social and owner actions", () => {
+  test("liking is per user and idempotent, and needs sign-in", async () => {
+    const { t, b, pub } = await world();
+    await as(t, b).mutation(api.videos.like, { id: pub, liked: true });
+    const twice = await as(t, b).mutation(api.videos.like, { id: pub, liked: true });
+    expect(twice.likes).toBe(1);
+    expect((await as(t, b).query(api.videos.get, { id: pub }))?.likedByMe).toBe(true);
+    const undone = await as(t, b).mutation(api.videos.like, { id: pub, liked: false });
+    expect(undone.likes).toBe(0);
+    await expect(t.mutation(api.videos.like, { id: pub, liked: true })).rejects.toThrow("Sign in first");
+  });
+
+  test("you can't save your own video", async () => {
+    const { t, a, pub } = await world();
+    await expect(as(t, a).mutation(api.videos.save, { id: pub, saved: true })).rejects.toThrow(
+      "You can't save your own video",
+    );
+  });
+
+  test("deleting a video removes other people's saves and likes of it", async () => {
+    const { t, a, b, pub } = await world();
+    await as(t, b).mutation(api.videos.save, { id: pub, saved: true });
+    await as(t, b).mutation(api.videos.like, { id: pub, liked: true });
+    expect((await as(t, b).query(api.videos.mySaved, {})).length).toBe(1);
+    await as(t, a).mutation(api.videos.remove, { id: pub });
+    expect(await as(t, b).query(api.videos.mySaved, {})).toEqual([]);
+    const leftovers = await t.run(async (ctx) => ({
+      likes: (await ctx.db.query("likes").collect()).length,
+      saves: (await ctx.db.query("saves").collect()).length,
+    }));
+    expect(leftovers).toEqual({ likes: 0, saves: 0 });
+  });
+
+  test("a video still being made can't be deleted", async () => {
+    const { t, a } = await world();
+    const busy = await addVideo(t, a, { status: "rendering" });
+    await expect(as(t, a).mutation(api.videos.remove, { id: busy })).rejects.toThrow("This video is still being made");
+  });
+
+  test("tags are cleaned like the backend cleans them", async () => {
+    const { t, a, pub } = await world();
+    await as(t, a).mutation(api.videos.setTags, { id: pub, tags: ["Physics", " #Waves ", "physics"] });
+    expect((await t.query(api.videos.get, { id: pub }))?.tags).toEqual(["physics", "waves"]);
+  });
+
+  test("only the owner can change visibility", async () => {
+    const { t, a, b, pub } = await world();
+    await expect(as(t, b).mutation(api.videos.setPublic, { id: pub, public: false })).rejects.toThrow(
+      "Video not found",
+    );
+    await as(t, a).mutation(api.videos.setPublic, { id: pub, public: false });
+    expect(await t.query(api.videos.get, { id: pub })).toBeNull();
+  });
+
+  test("views count for public videos, even signed out", async () => {
+    const { t, pub } = await world();
+    await t.mutation(api.videos.recordView, { id: pub });
+    expect((await t.query(api.videos.get, { id: pub }))?.views).toBe(1);
+  });
+});

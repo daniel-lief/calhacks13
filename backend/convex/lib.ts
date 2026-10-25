@@ -70,3 +70,16 @@ export async function toPublicVideo(ctx: QueryCtx, video: Doc<"videos">, viewer:
 }
 
 export type PublicVideo = Awaited<ReturnType<typeof toPublicVideo>>;
+
+const MAX_TAGS = 15;
+const MAX_TAG_LENGTH = 24;
+
+/** Lowercase, trimmed, de-duplicated, length-limited tags (same rules as backend/validate.py). */
+export function cleanTags(tags: string[]): string[] {
+  const out: string[] = [];
+  for (const raw of tags) {
+    const tag = raw.toLowerCase().split(/\s+/).filter(Boolean).join(" ").replace(/^#+/, "").trim().slice(0, MAX_TAG_LENGTH).trim();
+    if (tag && !out.includes(tag)) out.push(tag);
+  }
+  return out.slice(0, MAX_TAGS);
+}
