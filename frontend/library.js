@@ -14,7 +14,9 @@ const EMPTY_LIBRARY = {
   saved: "Nothing saved yet. Press Save on a video in <a class=\"inline-link\" href=\"#/discover\">Discover</a> to keep it here.",
 };
 
-let libraryTimer = null;
+const SIGNED_OUT_LIBRARY = "<button type=\"button\" class=\"link-button\" data-sign-in>Sign in</button> to see the videos you've made and saved.";
+
+let libraryUnsubs = [];      // live Convex queries while the library is open
 let libraryShow = "";        // "" (all) | "created" | "saved"
 let createdJobs = [];
 let savedJobs = [];
@@ -24,24 +26,27 @@ const librarySearch = makeSearch(
   () => renderLibrary(),
 );
 
-async function showLibrary() {
-  clearTimeout(libraryTimer);
+function showLibrary() {
+  leaveLibrary();
   const filter = readFilter();
   libraryShow = ["created", "saved"].includes(filter.show) ? filter.show : "";
   librarySearch.load(filter);
-  const [created, saved] = await Promise.all([
-    api("/api/jobs").catch(() => []),
-    api("/api/saved").catch(() => []),
-  ]);
-  if ($("#screen-library").hidden) return;
-  createdJobs = created;
-  savedJobs = saved;
-  renderLibrary();
-  if (createdJobs.some((j) => ACTIVE.has(j.status))) libraryTimer = setTimeout(showLibrary, 5000);
+  createdJobs = [];
+  savedJobs = [];
+  if (!currentUser) {
+    renderLibrary();
+    return;
+  }
+  // Live: progress of videos being made, new saves and deletions show up by themselves
+  libraryUnsubs = [
+    watch("videos:myLibrary", {}, (rows) => { createdJobs = rows; renderLibrary(); }),
+    watch("videos:mySaved", {}, (rows) => { savedJobs = rows; renderLibrary(); }),
+  ];
 }
 
 function leaveLibrary() {
-  clearTimeout(libraryTimer);
+  libraryUnsubs.forEach((stop) => stop());
+  libraryUnsubs = [];
 }
 
 function renderLibrary() {
@@ -61,8 +66,9 @@ function renderLibrary() {
   const shown = librarySearch.apply(list);
 
   lib.empty.hidden = list.length > 0;
-  lib.empty.innerHTML = EMPTY_LIBRARY[libraryShow];
-  lib.grid.replaceChildren(...shown.map((job) => (job.sample ? savedTile(job) : libraryTile(job))));
+  lib.empty.innerHTML = currentUser ? EMPTY_LIBRARY[libraryShow] : SIGNED_OUT_LIBRARY;
+  lib.empty.querySelector("[data-sign-in]")?.addEventListener("click", () => openAuth());
+  lib.grid.replaceChildren(...shown.map((job) => (job.ownedByMe ? libraryTile(job) : savedTile(job))));
 }
 
 lib.tabs.addEventListener("click", (e) => {
@@ -121,9 +127,7 @@ function libraryTile(job) {
     vis.addEventListener("click", async (e) => {
       e.preventDefault();
       try {
-        const updated = await api(`/api/jobs/${job.id}`, { method: "PATCH", body: JSON.stringify({ public: !job.public }) });
-        job.public = updated.public;
-        render();
+        await call("mutation", "videos:setPublic", { id: job.id, public: !job.public });  // live query re-renders
       } catch (err) { alert(err.message); }
     });
     actions.appendChild(vis);
@@ -139,8 +143,7 @@ function libraryTile(job) {
       e.preventDefault();
       if (!confirm(`Delete “${job.title || job.topic}”?`)) return;
       try {
-        await api(`/api/jobs/${job.id}`, { method: "DELETE" });
-        showLibrary();
+        await call("mutation", "videos:remove", { id: job.id });
       } catch (err) { alert(err.message); }
     });
     actions.appendChild(remove);
@@ -181,9 +184,7 @@ function savedTile(job) {
   unsave.title = "Remove from your library";
   unsave.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (await setSaved(job, false)) return;   // still saved: the request failed
-    savedJobs = savedJobs.filter((j) => j.id !== job.id);
-    renderLibrary();
+    await setSaved(job, false);   // the live query drops it from the list
   });
   actions.appendChild(unsave);
 

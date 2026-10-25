@@ -123,6 +123,7 @@
         <a class="t-20" data-nav="create" href="#/create">New video</a>
         <a class="t-20" data-nav="library" href="#/library">Library</a>
       </div>
+      <div class="account" id="account"></div>
     </nav>
 
     <!-- Feed -->
@@ -247,6 +248,17 @@
               <div class="voice-grid" id="voice-grid"></div>
             </fieldset>
             <fieldset class="wide">
+              <legend class="muted caps">PDF context</legend>
+              <div class="pdf-pick">
+                <label class="pdf-button link-button" for="pdf-input">Attach a PDF</label>
+                <input id="pdf-input" type="file" accept="application/pdf,.pdf" class="visually-hidden">
+                <span class="pdf-chosen" id="pdf-chosen" hidden></span>
+                <button id="pdf-remove" type="button" class="link-button muted caps" hidden>Remove</button>
+              </div>
+              <p class="muted pdf-hint">Optional. A problem set, lecture slides or notes for Claude to work from. Up to 20 MB and 50 pages. Only Claude reads it: it isn't saved, and nothing on the video shows it was used.</p>
+              <p class="pdf-error" id="pdf-error" role="alert"></p>
+            </fieldset>
+            <fieldset class="wide">
               <legend class="muted caps">Guidance</legend>
               <textarea name="extra" rows="2" maxlength="1000"
                         placeholder="Audience, angle, or what to focus on. For example: assume I know basic linear algebra; focus on why it's O(n log n)."></textarea>
@@ -346,11 +358,40 @@
     </section>
   </div>
 
+  <!-- Sign in / create account -->
+  <div class="auth-panel" id="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+    <div class="auth-box">
+      <button class="auth-close link-button muted caps t-16" id="auth-close" type="button">Close</button>
+      <h2 class="t-30" id="auth-title">Animai</h2>
+      <p class="t-16 muted auth-reason" id="auth-reason" hidden></p>
+      <div class="auth-tabs t-20" role="tablist">
+        <button type="button" role="tab" data-auth-tab="signin">Sign in</button>
+        <button type="button" role="tab" data-auth-tab="signup">Create account</button>
+      </div>
+      <form id="signin-form" class="auth-form" autocomplete="on">
+        <label class="t-16 muted caps">Username or email<input name="identifier" class="t-20" autocomplete="username" required></label>
+        <label class="t-16 muted caps">Password<input name="password" type="password" class="t-20" autocomplete="current-password" required></label>
+        <p class="auth-error t-16" role="alert"></p>
+        <button type="submit" class="link-button t-20">Sign in</button>
+      </form>
+      <form id="signup-form" class="auth-form" autocomplete="on" hidden>
+        <label class="t-16 muted caps">Username<input name="username" class="t-20" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" title="3–20 letters, numbers or _" required></label>
+        <label class="t-16 muted caps">Email<input name="email" type="email" class="t-20" autocomplete="email" required></label>
+        <label class="t-16 muted caps">Password<input name="password" type="password" class="t-20" autocomplete="new-password" minlength="8" required></label>
+        <p class="auth-error t-16" role="alert"></p>
+        <button type="submit" class="link-button t-20">Create account</button>
+      </form>
+    </div>
+  </div>
+
   <div class="cursor" id="cursor" aria-hidden="true"><div class="cursor-head"></div></div>
 
   <script src="/static/bubble-scene.js"></script>
   <script src="/static/core.js"></script>
   <script src="/static/player.js"></script>
+  <script src="https://unpkg.com/convex@1.48.0/dist/browser.bundle.js"></script>
+  <script src="/static/convex.js"></script>
+  <script src="/static/auth.js"></script>
   <script src="/static/create.js"></script>
   <script src="/static/browse.js"></script>
   <script src="/static/watch.js"></script>

@@ -189,6 +189,15 @@ button, input, textarea { font: inherit; color: inherit; }
 .options textarea:focus { border-color: var(--foreground); }
 .options textarea::placeholder { color: var(--muted); }
 
+/* PDF context */
+.pdf-pick { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6vh 1.2vw; }
+.pdf-button { cursor: pointer; text-decoration: underline; text-underline-offset: .25em; text-decoration-color: #ffffff40; }
+.pdf-chosen { color: var(--foreground); }
+.pdf-chosen[hidden], .pdf-remove[hidden], #pdf-remove[hidden] { display: none; }
+.pdf-hint { margin-top: .6vh; max-width: 60ch; line-height: 1.45; }
+.pdf-error { min-height: 1em; color: var(--accent); }
+.pdf-pick:has(input:focus-visible) .pdf-button { outline: 1px solid var(--foreground); outline-offset: 3px; }
+
 /* Voice picker */
 .voice-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8vh .6vw; }
 .options label.voice-card {
@@ -607,6 +616,40 @@ button, input, textarea { font: inherit; color: inherit; }
 .reel-empty { position: fixed; top: 50%; left: calc(var(--side) + 2vw); right: 4vw; transform: translateY(-50%); }
 .reel-hint { position: fixed; right: 4.16667vw; bottom: 4vh; pointer-events: none; }
 
+/* --- Accounts ------------------------------------------------------------------- */
+
+.account { display: flex; flex-direction: column; align-items: flex-start; gap: .6vh; margin-top: auto; }
+.account + .nav-health { margin-top: 2vh; }
+.account-name { color: var(--foreground); }
+
+.auth-panel {
+  position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 4vh 4vw;
+  background: #1a191ccc; backdrop-filter: blur(10px);
+}
+.auth-panel[hidden] { display: none; }
+.auth-box {
+  position: relative; display: flex; flex-direction: column; gap: 2vh;
+  width: min(100%, 420px); padding: 4vh 2.4vw; border: 1px solid #ffffff2e; background: var(--background);
+}
+.auth-close { position: absolute; top: 2vh; right: 1.6vw; }
+.auth-reason { margin-top: -1vh; }
+.auth-tabs { display: flex; gap: 2vw; }
+.auth-tabs button {
+  padding: 0 0 .6vh; border: 0; border-bottom: 1px solid transparent; background: none;
+  color: var(--muted); cursor: pointer; transition: color .3s, border-color .3s;
+}
+.auth-tabs button.on { color: var(--foreground); border-color: var(--foreground); }
+.auth-form { display: flex; flex-direction: column; gap: 2vh; }
+.auth-form[hidden] { display: none; }
+.auth-form label { display: flex; flex-direction: column; gap: .6vh; }
+.auth-form input {
+  padding: .6vh 0; border: 0; border-bottom: 1px solid #ffffff38; background: transparent;
+  color: var(--foreground); outline: none; letter-spacing: normal; text-transform: none;
+}
+.auth-form input:focus { border-color: var(--foreground); }
+.auth-form button[type=submit] { align-self: flex-start; margin-top: .6vh; }
+.auth-error { min-height: 1.2em; color: var(--accent); }
+
 /* --- Portrait / phones ------------------------------------------------------- */
 
 @media (orientation: portrait) {
@@ -640,6 +683,11 @@ button, input, textarea { font: inherit; color: inherit; }
     padding: 0 4vw; background: var(--background); border-top: 1px solid #ffffff1a;
   }
   .brand span, .nav-label, .nav-health { display: none; }
+  .account { margin: 0; }
+  .account-name { display: none; }
+  .auth-box { padding: 4vh 6vw; }
+  .auth-close { right: 5vw; }
+  .auth-tabs { gap: 6vw; }
   .brand svg { width: 26px; }
   .nav-group { flex-direction: row; gap: 6vw; }
   .screen { padding: 4vh 5vw calc(var(--tabs) + 4vh); }

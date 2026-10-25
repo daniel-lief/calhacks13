@@ -27,6 +27,7 @@ const players = new Set();   // shells, for the page-wide keyboard shortcuts
 
 function enhancePlayer(video) {
   video.removeAttribute("controls");
+  video.crossOrigin = "anonymous";  // media lives on Convex's domain; captions need CORS to load
   const shell = document.createElement("div");
   shell.className = "player-shell paused";
   shell.tabIndex = 0;

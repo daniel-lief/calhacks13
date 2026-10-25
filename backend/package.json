@@ -1,0 +1,20 @@
+{
+  "name": "animai-backend",
+  "description": "Convex functions for Animai (database, file storage, auth)",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@convex-dev/auth": "^0.0.96",
+    "convex": "^1.48.0",
+    "jose": "^6.2.13"
+  },
+  "private": true,
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "convex-test": "^0.0.65",
+    "vitest": "^5.0.5"
+  }
+}

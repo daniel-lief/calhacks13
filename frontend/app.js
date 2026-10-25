@@ -72,6 +72,13 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 
+// Signing in or out changes what the feed and library show (likes, saves, your videos).
+// The watch and progress pages are live queries, so Convex refreshes those itself.
+onAuthChange(() => {
+  if (screen === "feed") showFeed();
+  else if (screen === "library") showLibrary();
+});
+
 $("#monogram").addEventListener("click", (e) => {
   e.preventDefault();
   window.scrollTo({ top: 0, behavior: "smooth" });

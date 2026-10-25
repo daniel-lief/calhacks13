@@ -1,12 +1,6 @@
 """Chapters for a finished video: its narration grouped into a few titled parts.
 
-New videos get chapters when they're published; this also (re)builds them for
-existing videos:
-
-    .venv\\Scripts\\python -m backend.chapters            # videos that have none
-    .venv\\Scripts\\python -m backend.chapters --all      # every video, samples included
-
-Stop the server first and restart it afterwards, so it picks up the new chapters.
+New videos get them when each cut is published (see jobs.py).
 """
 from __future__ import annotations
 
@@ -72,29 +66,3 @@ def suggest_chapters(topic: str, title: str | None, segments: list[dict]) -> lis
     if response.stop_reason == "refusal" or response.parsed_output is None:
         return []
     return clean_chapters(response.parsed_output.chapters, segments)
-
-
-def _rebuild(path: Path, force: bool) -> None:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("status") != "done" or (data.get("chapters") and not force):
-        return
-    chapters = suggest_chapters(data["topic"], data.get("title"), narration_segments(path.parent))
-    if not chapters:
-        print(f"{path.parent.name}: no chapters returned, left unchanged")
-        return
-    data["chapters"] = chapters
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    tmp.replace(path)
-    summary = ", ".join(f"{int(c['start']) // 60}:{int(c['start']) % 60:02d} {c['title']}" for c in chapters)
-    print(f"{path.parent.name}: {data.get('title') or data['topic']} -> {summary}")
-
-
-if __name__ == "__main__":
-    force = "--all" in sys.argv[1:]
-    samples = list(config.SAMPLES_DIR.glob("*/job.json"))
-    sample_ids = {p.parent.name for p in samples}
-    # A promoted video also has its original under data/jobs; the sample copy is the one shown
-    own = [p for p in config.JOBS_DIR.glob("*/job.json") if p.parent.name not in sample_ids]
-    for job_json in own + samples:
-        _rebuild(job_json, force)

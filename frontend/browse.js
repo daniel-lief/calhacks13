@@ -12,14 +12,14 @@ const fe = {
 let feedPosts = [];
 
 async function loadFeed() {
-  try { feedPosts = await api("/api/feed"); } catch { feedPosts = []; }
+  try { feedPosts = await call("query", "videos:feed"); } catch { feedPosts = []; }
   return feedPosts;
 }
 
 function statsLine(job) {
   const line = document.createElement("div");
   line.className = "stats t-16";
-  line.innerHTML = `<span class="stat${likedIds.has(job.id) ? " liked" : ""}">${HEART}${compact(job.likes)}</span><span class="stat">${EYE}${compact(job.views)}</span>`;
+  line.innerHTML = `<span class="stat${job.likedByMe ? " liked" : ""}">${HEART}${compact(job.likes)}</span><span class="stat">${EYE}${compact(job.views)}</span>`;
   return line;
 }
 
@@ -29,17 +29,17 @@ function saveToggle(job, className) {
   b.type = "button";
   b.className = className;
   const render = () => {
-    b.classList.toggle("saved", !!job.saved);
-    b.setAttribute("aria-pressed", String(!!job.saved));
-    b.setAttribute("aria-label", job.saved ? "Remove from library" : "Save to library");
-    b.title = job.saved ? "Saved to your library" : "Save to your library";
-    b.innerHTML = `${BOOKMARK}<span>${job.saved ? "Saved" : "Save"}</span>`;
+    b.classList.toggle("saved", !!job.savedByMe);
+    b.setAttribute("aria-pressed", String(!!job.savedByMe));
+    b.setAttribute("aria-label", job.savedByMe ? "Remove from library" : "Save to library");
+    b.title = job.savedByMe ? "Saved to your library" : "Save to your library";
+    b.innerHTML = `${BOOKMARK}<span>${job.savedByMe ? "Saved" : "Save"}</span>`;
   };
   render();
   b.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const pending = setSaved(job, !job.saved);
+    const pending = setSaved(job, !job.savedByMe);
     render();
     await pending;
     render();
@@ -217,7 +217,7 @@ async function showReel(startId) {
   reelQuery = filterQuery(filter);
   let source = [];
   if (filter.from === "saved") {
-    try { source = await api("/api/saved"); } catch { /* offline: empty */ }
+    try { source = currentUser ? await call("query", "videos:mySaved") : []; } catch { /* offline: empty */ }
   } else {
     source = await loadFeed();
   }
@@ -283,6 +283,7 @@ function reelItem(job) {
   top.append(by, title, tags);
 
   const video = document.createElement("video");
+  video.crossOrigin = "anonymous";  // media lives on Convex's domain; captions need CORS to load
   video.playsInline = true;
   video.loop = true;
   video.muted = true;
@@ -311,7 +312,7 @@ function reelItem(job) {
   like.type = "button";
   like.className = "rail-button";
   const renderLike = () => {
-    const on = likedIds.has(job.id);
+    const on = !!job.likedByMe;
     like.classList.toggle("liked", on);
     like.setAttribute("aria-pressed", String(on));
     like.setAttribute("aria-label", on ? "Unlike" : "Like");
@@ -319,9 +320,7 @@ function reelItem(job) {
   };
   renderLike();
   like.addEventListener("click", async () => {
-    const on = !likedIds.has(job.id);
-    job.likes = Math.max(0, (job.likes || 0) + (on ? 1 : -1));
-    const pending = setLiked(job, on);
+    const pending = setLiked(job, !job.likedByMe);
     renderLike();
     await pending;
     renderLike();

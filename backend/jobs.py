@@ -1,28 +1,45 @@
-"""Job store and the topic -> video pipeline."""
+"""The topic -> video pipeline. Each job comes from Convex (claimed by backend/worker.py);
+progress, logs and the finished files go back to Convex. Scratch files live under
+DATA_DIR/work/<id> and are deleted when the job ends."""
 from __future__ import annotations
 
-import json
 import shutil
-import threading
 import time
 import traceback
-import uuid
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import config
-from .generator import GenerationError, SceneAuthor
+from . import attachments, config
 from .chapters import narration_segments, suggest_chapters
+<<<<<<< HEAD
 from .tagger import narration_text, suggest_tags
 from .voices import voice_name
 from .themes import theme_name
 from .research import ResearchResult, research_topic
+=======
+from .generator import GenerationError, SceneAuthor
+>>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
-from .validate import apply_scene_theme, check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
+from .tagger import narration_text, suggest_tags
+from .themes import theme_name
+from .validate import apply_scene_theme, check_scene, count_voiceovers, extract_tags, extract_title
 
+<<<<<<< HEAD
 ACTIVE_STATUSES = {"queued", "researching", "writing", "checking", "rendering", "reviewing"}
 MAX_LOG_ENTRIES = 300
+=======
+LOST_PDF = "The attached PDF was lost when the server restarted. Please try again."
+
+# Field names the pipeline uses -> names in the Convex videos table
+CONVEX_FIELDS = {"cost_usd": "costUsd", "finished_at": "finishedAt"}
+UPLOADS = {
+    "video": ("video.mp4", "video/mp4"),
+    "thumbnail": ("thumbnail.jpg", "image/jpeg"),
+    "captions": ("captions.vtt", "text/vtt"),
+    "timings": ("timings.json", "application/json"),
+    "code": ("scene.py", "text/x-python"),
+}
+>>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 
 
 @dataclass
@@ -42,44 +59,22 @@ class Job:
     id: str
     topic: str
     options: JobOptions
-    status: str = "queued"
-    stage: str = "Waiting in queue"
-    progress: float = 0.0
-    title: str | None = None
     attempts: int = 0
-    error: str | None = None
-    has_video: bool = False
-    has_captions: bool = False
-    has_thumbnail: bool = False
-    model: str = ""
-    cost_usd: float = 0.0
-    created_at: float = field(default_factory=time.time)
-    updated_at: float = field(default_factory=time.time)
-    finished_at: float | None = None
-    logs: list[dict] = field(default_factory=list)
+    title: str | None = None
     tags: list[str] = field(default_factory=list)
+<<<<<<< HEAD
     chapters: list[dict] = field(default_factory=list)   # [{start, title}], from the narration
     public: bool = False        # shown in the feed once it's done
     sample: bool = False        # pre-made post from backend/samples (read-only)
     research: dict = field(default_factory=dict)  # status + source metadata, never full transcripts
+=======
+    started: float = field(default_factory=time.time)
+    pdf: bytes | None = None    # private context; only ever in memory, and never logged
+>>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 
     @property
     def dir(self) -> Path:
-        return (config.SAMPLES_DIR if self.sample else config.JOBS_DIR) / self.id
-
-    def to_dict(self, include_logs: bool = True) -> dict:
-        data = asdict(self)
-        if not include_logs:
-            data.pop("logs")
-        media = f"/{'samples' if self.sample else 'media'}/{self.id}"
-        data["video_url"] = f"{media}/video.mp4?v={int(self.updated_at)}" if self.has_video else None
-        data["captions_url"] = f"{media}/captions.vtt?v={int(self.updated_at)}" if self.has_captions else None
-        data["thumbnail_url"] = f"{media}/thumbnail.jpg" if self.has_thumbnail else None
-        data["code_url"] = f"{media}/scene.py" if (self.dir / "scene.py").exists() else None
-        # Narration lines with start/end times, for the transcript
-        data["timings_url"] = (f"{media}/timings.json?v={int(self.updated_at)}"
-                               if self.has_video and (self.dir / "timings.json").exists() else None)
-        return data
+        return config.DATA_DIR / "work" / self.id
 
 
 class PipelineFailure(Exception):
@@ -87,195 +82,57 @@ class PipelineFailure(Exception):
 
 
 class JobManager:
-    def __init__(self):
-        config.JOBS_DIR.mkdir(parents=True, exist_ok=True)
-        self._jobs: dict[str, Job] = {}
-        self._lock = threading.Lock()
-        self._pool = ThreadPoolExecutor(max_workers=config.MAX_CONCURRENT_JOBS,
-                                        thread_name_prefix="job")
-        self._stats: dict[str, dict] = {}
-        self._saved: list[str] = []
-        self._load_existing()
-        self._load_samples()
-        self._load_stats()
-        self._load_saved()
+    """Runs one claimed job at a time, reporting to Convex through `convex`."""
 
-    # --- store ---------------------------------------------------------------
+    def __init__(self, convex):
+        self.convex = convex
 
-    @staticmethod
-    def _read(path: Path) -> Job | None:
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["options"] = JobOptions(**data.get("options", {}))
-            return Job(**data)
-        except Exception:
-            return None
-
-    def _load_existing(self):
-        for path in config.JOBS_DIR.glob("*/job.json"):
-            job = self._read(path)
-            if not job:
-                continue
-            if job.status in ACTIVE_STATUSES:
-                job.status = "failed"
-                job.error = "The server restarted while this video was being made."
-            self._jobs[job.id] = job
-
-    def _load_samples(self):
-        for path in config.SAMPLES_DIR.glob("*/job.json"):
-            job = self._read(path)
-            if job and job.status == "done":
-                job.sample = job.public = True
-                self._jobs[job.id] = job
-
-    def _load_stats(self):
-        try:
-            self._stats = json.loads(config.STATS_PATH.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            self._stats = {}
-
-    def _save_stats(self):
-        tmp = config.STATS_PATH.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self._stats), encoding="utf-8")
-        tmp.replace(config.STATS_PATH)
-
-    def _load_saved(self):
-        try:
-            self._saved = [i for i in json.loads(config.SAVED_PATH.read_text(encoding="utf-8")) if i in self._jobs]
-        except (OSError, ValueError):
-            self._saved = []
-
-    def _write_saved(self):
-        tmp = config.SAVED_PATH.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self._saved), encoding="utf-8")
-        tmp.replace(config.SAVED_PATH)
-
-    def _save(self, job: Job):
-        job.updated_at = time.time()
+    def run(self, claimed: dict) -> None:
+        opts = {k: v for k, v in claimed.get("options", {}).items() if k in JobOptions.__dataclass_fields__}
+        job = Job(id=claimed["id"], topic=claimed["topic"], options=JobOptions(**opts),
+                  attempts=int(claimed.get("attempts") or 0))
         job.dir.mkdir(parents=True, exist_ok=True)
-        tmp = job.dir / "job.json.tmp"
-        tmp.write_text(json.dumps(asdict(job), indent=2), encoding="utf-8")
-        tmp.replace(job.dir / "job.json")
-
-    def create(self, topic: str, options: JobOptions, public: bool = False) -> Job:
-        job = Job(id=uuid.uuid4().hex[:12], topic=topic, options=options, public=public)
-        with self._lock:
-            self._jobs[job.id] = job
-            self._save(job)
-        self._pool.submit(self._run, job)
-        return job
-
-    def get(self, job_id: str) -> Job | None:
-        return self._jobs.get(job_id)
-
-    def list(self) -> list[Job]:
-        """The user's own videos, newest first (samples aren't theirs)."""
-        return sorted((j for j in self._jobs.values() if not j.sample),
-                      key=lambda j: j.created_at, reverse=True)
-
-    def feed(self) -> list[Job]:
-        """Finished public posts, newest first."""
-        return sorted((j for j in self._jobs.values() if j.public and j.status == "done" and j.has_video),
-                      key=lambda j: j.created_at, reverse=True)
-
-    def saved(self) -> list[Job]:
-        """Posts saved to the library from the feed, most recently saved first."""
-        jobs = (self._jobs.get(i) for i in self._saved)
-        return [j for j in jobs if j and j.public and j.status == "done" and j.has_video]
-
-    def serialize(self, job: Job, include_logs: bool = True) -> dict:
-        data = job.to_dict(include_logs=include_logs)
-        stats = self._stats.get(job.id, {})
-        data["voice_name"] = voice_name(job.options.voice)
-        data["likes"] = stats.get("likes", 0)
-        data["views"] = stats.get("views", 0)
-        data["saved"] = job.id in self._saved
-        return data
-
-    def save(self, job_id: str, saved: bool) -> bool:
-        """Save a post to (or remove it from) the library. Only other people's posts can be saved."""
-        with self._lock:
-            job = self._jobs.get(job_id)
-            if not job or not job.sample:
-                return False
-            if job_id in self._saved:
-                self._saved.remove(job_id)
-            if saved:
-                self._saved.insert(0, job_id)
-            self._write_saved()
-        return True
-
-    def update(self, job_id: str, *, public: bool | None = None, tags: list[str] | None = None) -> Job | None:
-        """Change a video's visibility and/or tags. Samples are read-only."""
-        with self._lock:
-            job = self._jobs.get(job_id)
-            if not job or job.sample:
-                return None
-            if public is not None:
-                job.public = public
-            if tags is not None:
-                job.tags = clean_tags(tags)
-            self._save(job)
-        return job
-
-    def like(self, job_id: str, liked: bool) -> bool:
-        with self._lock:
-            if job_id not in self._jobs:
-                return False
-            stats = self._stats.setdefault(job_id, {})
-            stats["likes"] = max(0, stats.get("likes", 0) + (1 if liked else -1))
-            self._save_stats()
-        return True
-
-    def view(self, job_id: str) -> bool:
-        with self._lock:
-            if job_id not in self._jobs:
-                return False
-            stats = self._stats.setdefault(job_id, {})
-            stats["views"] = stats.get("views", 0) + 1
-            self._save_stats()
-        return True
-
-    def queue_position(self, job: Job) -> int:
-        queued = sorted((j for j in self._jobs.values() if j.status == "queued"),
-                        key=lambda j: j.created_at)
-        return next((i for i, j in enumerate(queued) if j.id == job.id), -1) + 1
-
-    def delete(self, job_id: str) -> bool:
-        with self._lock:
-            job = self._jobs.get(job_id)
-            if not job or job.sample or job.status in ACTIVE_STATUSES:
-                return False
-            del self._jobs[job_id]
-            if self._stats.pop(job_id, None) is not None:
-                self._save_stats()
-            if job_id in self._saved:
-                self._saved.remove(job_id)
-                self._write_saved()
-        shutil.rmtree(job.dir, ignore_errors=True)
-        return True
-
-    # --- pipeline ------------------------------------------------------------
-
-    def _update(self, job: Job, *, log: str | None = None, kind: str = "info", **fields):
-        with self._lock:
-            for key, value in fields.items():
-                setattr(job, key, value)
-            if log:
-                job.logs.append({"t": round(time.time() - job.created_at, 1), "kind": kind, "msg": log})
-                del job.logs[:-MAX_LOG_ENTRIES]
-            self._save(job)
-
-    def _run(self, job: Job):
         try:
+            if claimed.get("attachment"):
+                job.pdf = attachments.take(claimed["attachment"])
+                if job.pdf is None:
+                    raise PipelineFailure(LOST_PDF)
             self._pipeline(job)
         except (PipelineFailure, GenerationError) as exc:
-            self._update(job, status="failed", stage="Failed", error=str(exc),
-                         finished_at=time.time(), log=str(exc), kind="error")
-        except Exception as exc:  # Unexpected bug: record it rather than leave the job hanging
+            self._report_failure(job, str(exc), str(exc))
+        except Exception as exc:  # Unexpected bug (or Convex unreachable): record it if we can
             traceback.print_exc()
-            self._update(job, status="failed", stage="Failed", error=f"Internal error: {exc}",
-                         finished_at=time.time(), log=traceback.format_exc(limit=3), kind="error")
+            self._report_failure(job, f"Internal error: {exc}", traceback.format_exc(limit=3))
+        finally:
+            shutil.rmtree(job.dir, ignore_errors=True)
+
+    def _report_failure(self, job: Job, error: str, log: str):
+        """Best effort: if Convex can't be reached either, the worker's next startup marks it failed."""
+        try:
+            self._update(job, status="failed", stage="Failed", error=error,
+                         finished_at=time.time(), log=log, kind="error")
+        except Exception:
+            traceback.print_exc()
+
+    # --- reporting -------------------------------------------------------------
+
+    def _update(self, job: Job, *, log: str | None = None, kind: str = "info", **fields):
+        for key in ("title", "tags", "attempts"):
+            if key in fields:
+                setattr(job, key, fields[key])
+        sent = {}
+        for key, value in fields.items():
+            if value is None:
+                continue
+            if key == "finished_at":
+                value = value * 1000  # Convex timestamps are milliseconds
+            sent[CONVEX_FIELDS.get(key, key)] = value
+        args = {"id": job.id, "fields": sent}
+        if log:
+            args["log"] = {"t": round(time.time() - job.started, 1), "kind": kind, "msg": log}
+        self.convex.mutation("worker:update", args)
+
+    # --- pipeline --------------------------------------------------------------
 
     def _pipeline(self, job: Job):
         opts = job.options
@@ -294,7 +151,11 @@ class JobManager:
         self._update(job, status="writing", stage="Planning the video script…", progress=0.08,
                      log=f"Planning an explanation of “{job.topic}”")
         self._update(job, log=f"Color theme: {theme_name(opts.theme)}")
+<<<<<<< HEAD
         code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme, research=research.context())
+=======
+        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme, pdf=job.pdf)
+>>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
         self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 
@@ -336,16 +197,16 @@ class JobManager:
         lo, hi = progress_span
         for attempt in range(budget + 1):
             code = apply_scene_theme(code, job.options.theme)
-            n = job.attempts = job.attempts + 1
-            scene_path = job.dir / "work" / f"scene_v{n}.py"
-            scene_path.parent.mkdir(parents=True, exist_ok=True)
+            n = job.attempts + 1
+            self._update(job, attempts=n)
+            scene_path = job.dir / f"scene_v{n}.py"
             scene_path.write_text(code, encoding="utf-8")
 
             stage, problem = "static checks", check_scene(code)
             if not problem:
                 self._update(job, status="checking", stage="Test-running the scene code…",
                              log=f"Attempt {n}: dry run")
-                dry = render_scene(scene_path, job.dir / "work" / f"dry_v{n}", dry_run=True,
+                dry = render_scene(scene_path, job.dir / f"dry_v{n}", dry_run=True,
                                    theme=job.options.theme)
                 stage, problem = "a dry run of the scene", (None if dry.ok else dry.error)
             if not problem:
@@ -358,10 +219,9 @@ class JobManager:
 
                 self._update(job, status="rendering", stage="Rendering animation…", progress=lo,
                              log=f"Attempt {n}: rendering at {job.options.quality} quality")
-                render = render_scene(scene_path, job.dir / "work" / f"render_v{n}",
+                render = render_scene(scene_path, job.dir / f"render_v{n}",
                                       quality=job.options.quality, narration=job.options.narration,
-                                      voice=job.options.voice,
-                                      theme=job.options.theme,
+                                      voice=job.options.voice, theme=job.options.theme,
                                       on_segment=on_segment)
                 for w in render.warnings:
                     self._update(job, log=w, kind="warning")
@@ -380,28 +240,34 @@ class JobManager:
         raise AssertionError("unreachable")
 
     def _publish(self, job: Job, code: str, render):
+        """Writes this cut's files locally (the review step reads them), then uploads them to Convex."""
         shutil.copyfile(render.output_path, job.dir / "video.mp4")
         (job.dir / "scene.py").write_text(code, encoding="utf-8")
-        has_captions = False
+        (job.dir / "captions.vtt").unlink(missing_ok=True)
         if render.timings_path:
             shutil.copyfile(render.timings_path, job.dir / "timings.json")
             if job.options.narration:
                 write_vtt(render.timings_path, job.dir / "captions.vtt")
-                has_captions = True
         make_thumbnail(job.dir / "video.mp4", render.timings_path, job.dir / "thumbnail.jpg")
-        self._update(job, has_video=True, has_captions=has_captions,
-                     has_thumbnail=(job.dir / "thumbnail.jpg").exists(), title=extract_title(code))
-        if not job.tags:
-            tags = extract_tags(code) or suggest_tags(job.topic, job.title, narration_text(job.dir))
-            self._update(job, tags=tags)
+
+        files = {}
+        for key, (name, content_type) in UPLOADS.items():
+            path = job.dir / name
+            if path.exists():
+                files[key] = self.convex.upload(path, content_type)
+        self.convex.mutation("worker:attachFiles", {"id": job.id, "files": files})
+
+        title = extract_title(code)
+        tags = job.tags or extract_tags(code) or suggest_tags(job.topic, title, narration_text(job.dir))
         # Rebuilt on every cut, since a re-render after review changes the timings
-        self._update(job, chapters=suggest_chapters(job.topic, job.title, narration_segments(job.dir)))
+        chapters = suggest_chapters(job.topic, title, narration_segments(job.dir))
+        self._update(job, title=title, tags=tags, chapters=chapters)
 
     def _review(self, job: Job, author: SceneAuthor, code: str):
         self._update(job, status="reviewing", stage="Claude is reviewing the frames…", progress=0.86,
                      log="First cut ready — reviewing frames for layout problems")
         frames = extract_frames(job.dir / "video.mp4", job.dir / "timings.json",
-                                job.dir / "work" / f"frames_v{job.attempts}")
+                                job.dir / f"frames_v{job.attempts}")
         if not frames:
             self._update(job, log="No frames to review; keeping the first cut", kind="warning")
             return

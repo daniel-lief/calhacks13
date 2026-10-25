@@ -344,3 +344,20 @@ h1, h2, .brand, .enter, .closing, .tree-label, .pl-title {
   .render-art-window, .lesson-front, .art-bars i { animation: none; }
   .hero-copy .hero-discover, .hero-copy .hero-discover::after { transition: none; }
 }
+
+/* Sign-in box and PDF picker */
+.auth-panel { background: #583f4166; }
+.auth-box { border: 0; border-radius: 20px; background: var(--surface); box-shadow: var(--soft-shadow), inset 0 0 0 1px #e7dcd680; }
+.auth-tabs button.on { color: var(--accent); border-color: var(--accent); }
+.auth-form input {
+  padding: 1vh 12px; border: 1px solid var(--line); border-radius: 8px; background: #fcf9f6;
+  transition: border-color .2s, box-shadow .2s;
+}
+.auth-form input:focus { border-color: #d499a5; box-shadow: 0 0 0 3px #f8e1e580; }
+.auth-form button[type=submit], .pdf-button {
+  padding: 8px 18px; border-radius: 10px; background: #f4ebe6; text-decoration: none; transition: background .2s;
+}
+.auth-form button[type=submit] { background: #ff964f; color: #583f41; font-weight: 500; }
+.auth-form button[type=submit]:hover { background: #ffa768; color: #583f41; }
+.pdf-button:hover { background: var(--blush); }
+.pdf-pick { align-items: center; }
