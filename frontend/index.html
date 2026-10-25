@@ -235,6 +235,7 @@
               <label><input type="checkbox" name="public"><span>Make public</span></label>
               <label><input type="checkbox" name="narration" checked><span>Voice narration</span></label>
               <label><input type="checkbox" name="review" checked><span>Visual review pass</span></label>
+              <label><input type="checkbox" name="research" checked><span>Research existing videos</span></label>
             </fieldset>
             <fieldset class="wide">
               <legend class="muted caps">Color theme</legend>
@@ -273,6 +274,7 @@
           </div>
 
           <ol class="steps t-16 caps" id="steps">
+            <li data-step="researching">Research</li>
             <li data-step="writing">Script</li>
             <li data-step="checking">Test run</li>
             <li data-step="rendering">Render</li>
@@ -306,6 +308,12 @@
               <button id="failure-new" class="link-button muted" type="button">Make another</button>
             </div>
           </div>
+
+          <details class="research-note t-16" id="job-research" hidden>
+            <summary>Video research</summary>
+            <p id="research-message" role="status"></p>
+            <ul id="research-sources" aria-label="Research sources"></ul>
+          </details>
 
           <details class="log" id="log-wrap">
             <summary class="t-16 muted caps">Behind the scenes</summary>

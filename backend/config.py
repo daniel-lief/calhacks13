@@ -36,6 +36,16 @@ RENDER_TIMEOUT_SECONDS = int(os.getenv("RENDER_TIMEOUT_SECONDS", "1800"))
 MAX_CONCURRENT_JOBS = int(os.getenv("MAX_CONCURRENT_JOBS", "1"))
 TTS_VOICE = os.getenv("TTS_VOICE", "en-US-AndrewMultilingualNeural")
 
+# Optional YouTube research. Tokens stay on the server; no credentials reach the browser.
+APIFY_TOKEN = os.getenv("APIFY_TOKEN", "") or os.getenv("APIFY_API_TOKEN", "")
+RESEARCH_ENABLED = os.getenv("RESEARCH_ENABLED", "true").lower() not in {"0", "false", "no"}
+RESEARCH_MAX_VIDEOS = max(1, min(3, int(os.getenv("RESEARCH_MAX_VIDEOS", "3"))))
+RESEARCH_TIMEOUT_SECONDS = max(30, min(300, int(os.getenv("RESEARCH_TIMEOUT_SECONDS", "180"))))
+RESEARCH_MAX_APIFY_USD = max(.04, float(os.getenv("RESEARCH_MAX_APIFY_USD", "0.50")))
+RESEARCH_CACHE_TTL_SECONDS = 86400
+RESEARCH_CACHE_DIR = DATA_DIR / "research_cache"
+RESEARCH_MODEL = os.getenv("RESEARCH_MODEL", CLAUDE_MODEL)
+
 _LOCALAPPDATA = os.getenv("LOCALAPPDATA", "")
 _PROGRAMFILES = os.getenv("ProgramFiles", r"C:\Program Files")
 

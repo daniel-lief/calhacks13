@@ -17,10 +17,11 @@ from .chapters import narration_segments, suggest_chapters
 from .tagger import narration_text, suggest_tags
 from .voices import voice_name
 from .themes import theme_name
+from .research import ResearchResult, research_topic
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
 from .validate import apply_scene_theme, check_scene, clean_tags, count_voiceovers, extract_tags, extract_title
 
-ACTIVE_STATUSES = {"queued", "writing", "checking", "rendering", "reviewing"}
+ACTIVE_STATUSES = {"queued", "researching", "writing", "checking", "rendering", "reviewing"}
 MAX_LOG_ENTRIES = 300
 
 
@@ -33,6 +34,7 @@ class JobOptions:
     review: bool = True
     extra: str = ""
     theme: str = "bubble"
+    research: bool = True
 
 
 @dataclass
@@ -59,6 +61,7 @@ class Job:
     chapters: list[dict] = field(default_factory=list)   # [{start, title}], from the narration
     public: bool = False        # shown in the feed once it's done
     sample: bool = False        # pre-made post from backend/samples (read-only)
+    research: dict = field(default_factory=dict)  # status + source metadata, never full transcripts
 
     @property
     def dir(self) -> Path:
@@ -276,21 +279,22 @@ class JobManager:
 
     def _pipeline(self, job: Job):
         opts = job.options
+        research = self._research(job)
 
         def on_event(kind: str, text: str):
             if kind == "thinking":
                 self._update(job, log=text, kind="thinking")
             elif kind == "usage":
-                self._update(job, log=text, cost_usd=round(author.cost_usd, 4))
+                self._update(job, log=text, cost_usd=round(author.cost_usd + research.cost_usd, 4))
             else:
                 self._update(job, stage=text)
 
         author = SceneAuthor(on_event)
         self._update(job, model=config.CLAUDE_MODEL)
-        self._update(job, status="writing", stage="Claude is planning the video…", progress=0.03,
+        self._update(job, status="writing", stage="Planning the video script…", progress=0.08,
                      log=f"Planning an explanation of “{job.topic}”")
         self._update(job, log=f"Color theme: {theme_name(opts.theme)}")
-        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme)
+        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme, research=research.context())
         self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 
@@ -303,6 +307,28 @@ class JobManager:
 
         self._update(job, status="done", stage="Done", progress=1.0, finished_at=time.time(),
                      log="Video ready")
+
+    def _research(self, job: Job) -> ResearchResult:
+        if not job.options.research:
+            result = ResearchResult("skipped", "Video research was turned off for this video.")
+        else:
+            self._update(job, status="researching", stage="Finding relevant video explanations…", progress=.01,
+                         research={"status": "researching", "message": "Looking for useful explanations on YouTube.", "sources": []},
+                         log="Researching existing YouTube explanations before writing the script")
+
+            def progress(message: str):
+                self._update(job, stage=message, log=message,
+                             research={"status": "researching", "message": message, "sources": []})
+
+            try:
+                result = research_topic(job.topic, job.options.length, job.options.extra, on_progress=progress)
+            except Exception:
+                # Optional research must not strand a job. No raw third-party exceptions
+                # are sent to clients or persisted, since they may include credentials.
+                result = ResearchResult("unavailable", "Video research was unavailable. Continuing from your topic.")
+        self._update(job, research=result.public(), cost_usd=round(result.cost_usd, 4),
+                     log=result.message, kind="warning" if result.status == "unavailable" else "info")
+        return result
 
     def _build(self, job: Job, author: SceneAuthor, code: str, *, budget: int,
                progress_span: tuple[float, float]):

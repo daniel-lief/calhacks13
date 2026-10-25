@@ -30,12 +30,15 @@ class SceneAuthor:
         self.on_event = on_event  # (kind, text): kind is "thinking" | "progress" | "usage"
         self.cost_usd = 0.0
 
-    def write(self, topic: str, length: str, extra: str = "", theme: str = "bubble") -> str:
+    def write(self, topic: str, length: str, extra: str = "", theme: str = "bubble",
+              research: dict | None = None) -> str:
         request = prompts.initial_request(topic, length, extra)
         request += (f'\n\nSelected color theme: {theme_name(theme)}. Set THEME = "{theme}". '
                     'Use get_theme() and palette_color(i) for all colors, including new shapes and labels. '
                     'Keep Fredoka SemiBold, JetBrains Mono, rounded cards and all animation styling unchanged. '
                     'Retain this palette during repairs and visual review.')
+        if research:
+            request += prompts.research_context(research)
         return self._turn(request, require_code=True)
 
     def repair(self, error: str, stage: str) -> str:

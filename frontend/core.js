@@ -3,9 +3,9 @@
 // Shared by every screen: API access, formatting helpers, likes, and the page
 // atmosphere (text reveals, cursor).
 
-const ACTIVE = new Set(["queued", "writing", "checking", "rendering", "reviewing"]);
+const ACTIVE = new Set(["queued", "researching", "writing", "checking", "rendering", "reviewing"]);
 const STATUS_LABEL = {
-  queued: "Queued", writing: "Writing the script", checking: "Test run", rendering: "Rendering",
+  queued: "Queued", researching: "Researching the topic", writing: "Writing the script", checking: "Test run", rendering: "Rendering",
   reviewing: "Reviewing frames", done: "Ready", failed: "Failed",
 };
 

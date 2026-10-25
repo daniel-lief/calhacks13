@@ -114,6 +114,48 @@ about 10 seconds slower on Windows.
 
 ## Web app
 
+New videos research existing explanations before writing the script. In **New video →
+Options**, **Research existing videos** is checked by default and can be turned off.
+The progress page adds a Research step and a **Video research** panel with source links.
+
+To enable live research, add `APIFY_TOKEN=your_token` to the local `.env` and restart
+the backend. Get the token from [Apify integrations](https://console.apify.com/settings/integrations).
+Without a token, generation proceeds normally and records that research was unavailable.
+The existing Anthropic credentials handle the transcript analysis and script writing.
+
+The backend runs [memo23's search actor](https://apify.com/memo23/youtube-search-results-scraper)
+for the user's topic, then [starvibe's transcript actor](https://apify.com/starvibe/youtube-video-transcript)
+for up to three relevant results, preferring different channels. It excludes live videos
+and videos with known durations outside 30 seconds–30 minutes. It downloads full
+transcripts, analyzes concepts, teaching order, visual ideas, pitfalls and uncertainties,
+then gives the scene writer a concise brief. The brief stays in the conversation through
+repairs and review. Scripts should explain concepts in original wording with fresh examples;
+search ranking is not a guarantee that a source is accurate or professionally produced.
+
+Research uses the [Apify REST API](https://docs.apify.com/api/v2/actors-runs-post)
+on the server, so background jobs can poll and abort known runs independently of an IDE.
+The [Apify MCP server](https://mcp.apify.com/) offers the same actors to AI clients;
+connecting MCP to an editor is optional and does not configure the website's token.
+
+Defaults: six search results, at most three transcript runs, a combined **$0.50 actor
+charge ceiling per research attempt**, and 180 seconds for Apify plus 45 seconds for
+analysis. Anthropic analysis is billed separately. Limits are ceilings, not estimated
+charges. The backend never retries a paid start request automatically. Actor timeouts
+and best-effort aborts bound abandoned runs. `.env.example` lists the overrides.
+
+Research briefs and complete transcripts are cached for 24 hours under
+`data/research_cache/`, outside the public media mount. Cache expiry prevents reuse;
+expired files are not automatically deleted. Only source metadata and research status
+are included in job API responses. Unsupported/missing captions, unavailable services,
+or analysis failures fall back to the original topic rather than failing the video.
+Transcripts are treated as untrusted data and are analyzed without tools; raw transcripts
+are not passed to the code-writing model. Oversized transcripts are skipped rather than
+silently truncated.
+
+Run `python -m unittest discover -s tests -v` to verify the mocked actor contracts,
+failure paths, caching, budget propagation, pipeline order and persisted job compatibility.
+These tests do not spend Apify credits.
+
 ```
 topic ──▶ Claude (Sonnet 5.5) writes an Animai scene
             │

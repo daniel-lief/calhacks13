@@ -14,7 +14,7 @@ const EXAMPLES = [
   "The Silk Road",
 ];
 
-const STEPS = ["writing", "checking", "rendering", "reviewing", "done"];
+const STEPS = ["researching", "writing", "checking", "rendering", "reviewing", "done"];
 const POLL_MS = 1500;
 
 const el = {
@@ -28,6 +28,7 @@ const el = {
   failureNew: $("#failure-new"), log: $("#log"),
   jobTags: $("#job-tags"), tagList: $("#job-tag-list"), editTags: $("#edit-tags"),
   tagForm: $("#tag-form"), tagInput: $("#tag-input"), tagCancel: $("#tag-cancel"),
+  research: $("#job-research"), researchMessage: $("#research-message"), researchSources: $("#research-sources"),
 };
 
 const jobPlayer = enhancePlayer(el.video);
@@ -173,6 +174,7 @@ function formPayload() {
     quality: fd.get("quality"),
     narration: fd.get("narration") === "on",
     review: fd.get("review") === "on",
+    research: fd.get("research") === "on",
     public: fd.get("public") === "on",
     voice: fd.get("voice") || "",
     theme: fd.get("theme") || "bubble",
@@ -229,6 +231,7 @@ function showJob(id) {
   el.jobTitle.textContent = "Loading";
   el.jobTopic.textContent = "";
   el.jobTags.hidden = true;
+  el.research.hidden = true;
   closeTagEditor();
   poll(id);
 }
@@ -260,6 +263,7 @@ function renderJob(job) {
   el.jobTopic.textContent = STATUS_LABEL[job.status] || job.status;
   el.jobTitle.textContent = job.title || job.topic;
   renderTags(job);
+  renderResearch(job);
 
   // Steps
   const idx = job.status === "queued" ? -1 : STEPS.indexOf(job.status);
@@ -267,6 +271,7 @@ function renderJob(job) {
     const step = li.dataset.step;
     li.className = "";
     if (step === "reviewing" && !job.options.review) li.classList.add("skipped");
+    if (step === "researching" && (job.options.research === false || ["skipped", "unavailable"].includes(job.research?.status))) li.classList.add("skipped");
     if (job.status === "failed") return;
     if (i < idx || job.status === "done") li.classList.add("done");
     else if (i === idx) li.classList.add("active");
@@ -367,6 +372,25 @@ el.togglePublic.addEventListener("click", async () => {
 });
 
 // --- Tags ----------------------------------------------------------------------
+
+function renderResearch(job) {
+  const research = job.research;
+  el.research.hidden = !research || !research.status || research.status === "skipped";
+  el.researchMessage.textContent = research?.message || "";
+  const sources = (research?.sources || []).filter(source =>
+    /^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/.test(source.url));
+  el.researchSources.replaceChildren(...sources.map(source => {
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = source.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = source.title;
+    li.appendChild(link);
+    if (source.channel) li.append(` · ${source.channel}`);
+    return li;
+  }));
+}
 
 function renderTags(job) {
   const tags = job.tags || [];

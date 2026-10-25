@@ -125,6 +125,13 @@ h1, h2, .brand, .enter, .closing, .tree-label, .pl-title {
 }
 .watch-action:hover, .chapter-list button:hover { border-color: #d8b3bb; background: #fcf0ef; }
 .watch-details, .watch-transcript { border-color: var(--line); border-radius: 14px; background: #fffdfbc4; }
+.research-note { width: 100%; margin-top: 22px; padding: 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: #fffdfb90; text-align: left; }
+.research-note[hidden] { display: none; }
+.research-note summary { cursor: pointer; color: var(--foreground); }
+.research-note p { margin-top: 12px; color: var(--muted); line-height: 1.6; }
+.research-note ul { display: grid; gap: 10px; padding-left: 20px; margin-top: 12px; color: var(--muted); }
+.research-note ul:empty { display: none; }
+.research-note a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .watch-description-actions { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 12px; border-top: 1px solid var(--line); }
 .watch-owner {
   flex-direction: column; gap: 18px; margin-top: 18px; padding: clamp(18px, 1.8vw, 28px);

@@ -25,6 +25,7 @@ class CreateJob(BaseModel):
     quality: Literal["low", "medium", "high"] = "medium"
     narration: bool = True
     review: bool = True
+    research: bool = True
     extra: str = Field(default="", max_length=1000)
     public: bool = False
     voice: str = ""
@@ -90,7 +91,7 @@ def create_job(body: CreateJob):
     topic = " ".join(body.topic.split())
     job = jobs.create(topic, JobOptions(
         length=body.length, quality=body.quality, narration=body.narration,
-        review=body.review, extra=body.extra.strip(), voice=body.voice, theme=body.theme,
+        review=body.review, research=body.research, extra=body.extra.strip(), voice=body.voice, theme=body.theme,
     ), public=body.public)
     return jobs.serialize(job)
 
