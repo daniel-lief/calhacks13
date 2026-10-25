@@ -177,3 +177,82 @@ export const remove = mutation({
     return null;
   },
 });
+
+// --- Creating -----------------------------------------------------------------
+
+const DAILY_LIMIT = 100;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const LENGTHS = ["short", "medium", "long"];
+const QUALITIES = ["low", "medium", "high"];
+
+/**
+ * Queue a new video for the signed-in user. The render worker picks it up from here.
+ * At most DAILY_LIMIT per user per rolling 24 hours.
+ */
+export const create = mutation({
+  args: {
+    topic: v.string(),
+    length: v.string(),
+    quality: v.string(),
+    narration: v.boolean(),
+    review: v.boolean(),
+    public: v.boolean(),
+    extra: v.string(),
+    voice: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const owner = await requireUser(ctx);
+    const topic = args.topic.split(/\s+/).filter(Boolean).join(" ");
+    if (topic.length < 2 || topic.length > 300) throw new ConvexError("Topics need 2–300 characters");
+    if (!LENGTHS.includes(args.length)) throw new ConvexError("Unknown length");
+    if (!QUALITIES.includes(args.quality)) throw new ConvexError("Unknown quality");
+    if (args.extra.length > 1000) throw new ConvexError("Guidance can be at most 1000 characters");
+
+    const since = Date.now() - DAY_MS;
+    let recent = 0;
+    for await (const video of ctx.db.query("videos").withIndex("by_owner", (q) => q.eq("owner", owner)).order("desc")) {
+      if (video._creationTime < since) break;
+      if (++recent >= DAILY_LIMIT) {
+        throw new ConvexError(`You've made ${DAILY_LIMIT} videos in the last 24 hours. Try again later.`);
+      }
+    }
+
+    return await ctx.db.insert("videos", {
+      owner,
+      topic,
+      options: {
+        length: args.length,
+        quality: args.quality,
+        narration: args.narration,
+        review: args.review,
+        extra: args.extra.trim(),
+        voice: args.voice,
+      },
+      status: "queued",
+      stage: "Waiting in queue",
+      progress: 0,
+      attempts: 0,
+      costUsd: 0,
+      tags: [],
+      chapters: [],
+      public: args.public,
+      views: 0,
+      likes: 0,
+      files: {},
+    });
+  },
+});
+
+/** 1 if this queued video is next up, 2 if one is ahead of it, and so on (0 if not queued). */
+export const queuePosition = query({
+  args: { id: v.id("videos") },
+  handler: async (ctx, { id }) => {
+    const video = await ctx.db.get(id);
+    if (!video || video.status !== "queued") return 0;
+    const queued = await ctx.db
+      .query("videos")
+      .withIndex("by_status", (q) => q.eq("status", "queued"))
+      .take(1000);
+    return queued.filter((v) => v._creationTime < video._creationTime).length + 1;
+  },
+});

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import { addUser, addVideo, as, makeTest } from "./test.utils";
 
@@ -102,5 +102,47 @@ describe("social and owner actions", () => {
     const { t, pub } = await world();
     await t.mutation(api.videos.recordView, { id: pub });
     expect((await t.query(api.videos.get, { id: pub }))?.views).toBe(1);
+  });
+});
+
+describe("creating videos", () => {
+  const request = { topic: "Why ice floats", length: "short", quality: "medium", narration: true, review: true, public: true, extra: "", voice: "" };
+  afterEach(() => vi.useRealTimers());
+
+  test("needs sign-in", async () => {
+    const { t } = await world();
+    await expect(t.mutation(api.videos.create, request)).rejects.toThrow("Sign in first");
+  });
+
+  test("queues a video owned by the caller", async () => {
+    const { t, b } = await world();
+    const id = await as(t, b).mutation(api.videos.create, { ...request, topic: "  Why   ice floats " });
+    const video = await as(t, b).query(api.videos.get, { id });
+    expect(video?.status).toBe("queued");
+    expect(video?.topic).toBe("Why ice floats");
+    expect(video?.ownedByMe).toBe(true);
+    expect(await as(t, b).query(api.videos.queuePosition, { id })).toBe(1);
+  });
+
+  test("rejects a too-short topic", async () => {
+    const { t, b } = await world();
+    await expect(as(t, b).mutation(api.videos.create, { ...request, topic: " a " })).rejects.toThrow(
+      "Topics need 2–300 characters",
+    );
+  });
+
+  test("allows 100 videos per rolling 24 hours", async () => {
+    // convex-test never lets creation times go backwards, so set the clock before creating anything
+    vi.useFakeTimers();
+    const start = new Date("2026-10-24T12:00:00Z").getTime();
+    vi.setSystemTime(start);
+    const { t, b } = await world();
+    for (let i = 0; i < 100; i++) await addVideo(t, b, { status: "done" });
+    vi.setSystemTime(start + 60 * 60 * 1000);
+    await expect(as(t, b).mutation(api.videos.create, request)).rejects.toThrow(
+      "You've made 100 videos in the last 24 hours. Try again later.",
+    );
+    vi.setSystemTime(start + 25 * 60 * 60 * 1000);
+    await expect(as(t, b).mutation(api.videos.create, request)).resolves.toBeTruthy();
   });
 });
