@@ -13,6 +13,7 @@ import type * as http from "../http.js";
 import type * as lib from "../lib.js";
 import type * as users from "../users.js";
 import type * as videos from "../videos.js";
+import type * as worker from "../worker.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   lib: typeof lib;
   users: typeof users;
   videos: typeof videos;
+  worker: typeof worker;
 }>;
 
 /**
