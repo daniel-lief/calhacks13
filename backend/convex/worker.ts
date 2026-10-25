@@ -32,8 +32,15 @@ export const claimNext = mutation({
       .withIndex("by_status", (q) => q.eq("status", "queued"))
       .first();
     if (!next) return null;
-    await ctx.db.patch(next._id, { status: "writing", stage: "Starting…", startedAt: Date.now() });
-    return { id: next._id, topic: next.topic, options: next.options, attempts: next.attempts };
+    // The attachment token is handed over once and erased, so no trace of it stays with the video
+    await ctx.db.patch(next._id, { status: "writing", stage: "Starting…", startedAt: Date.now(), attachment: undefined });
+    return {
+      id: next._id,
+      topic: next.topic,
+      options: next.options,
+      attempts: next.attempts,
+      attachment: next.attachment ?? null,
+    };
   },
 });
 

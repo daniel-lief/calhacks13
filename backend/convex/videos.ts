@@ -199,9 +199,13 @@ export const create = mutation({
     public: v.boolean(),
     extra: v.string(),
     voice: v.string(),
+    attachment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const owner = await requireUser(ctx);
+    if (args.attachment !== undefined && !/^[A-Za-z0-9_-]{16,64}$/.test(args.attachment)) {
+      throw new ConvexError("Invalid attachment");
+    }
     const topic = args.topic.split(/\s+/).filter(Boolean).join(" ");
     if (topic.length < 2 || topic.length > 300) throw new ConvexError("Topics need 2–300 characters");
     if (!LENGTHS.includes(args.length)) throw new ConvexError("Unknown length");
@@ -239,6 +243,7 @@ export const create = mutation({
       views: 0,
       likes: 0,
       files: {},
+      ...(args.attachment ? { attachment: args.attachment } : {}),
     });
   },
 });

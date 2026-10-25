@@ -61,6 +61,9 @@ export default defineSchema({
     }),
     startedAt: v.optional(v.number()),
     finishedAt: v.optional(v.number()),
+    // One-time token for private PDF context held in the render server's memory. Erased when
+    // the worker claims the video; never returned to clients.
+    attachment: v.optional(v.string()),
   })
     .index("by_owner", ["owner"])
     .index("by_status", ["status"])

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
-import { addUser, addVideo, makeTest } from "./test.utils";
+import { addUser, addVideo, as, makeTest } from "./test.utils";
 
 const secret = "s3cret";
 beforeEach(() => {
@@ -107,5 +107,27 @@ describe("worker API", () => {
     await expect(
       t.mutation(api.worker.importVideo, { secret, ownerUsername: "ghost", video: imported }),
     ).rejects.toThrow("No account named @ghost");
+  });
+
+  test("an attachment token reaches the worker exactly once and is never shown to viewers", async () => {
+    const t = makeTest();
+    const u = await addUser(t, "alice");
+    const request = { topic: "Problem 3", length: "short", quality: "low", narration: true, review: true, public: true, extra: "", voice: "" };
+    const id = await as(t, u).mutation(api.videos.create, { ...request, attachment: "tok_abc123def456ghi" });
+    const shown = await as(t, u).query(api.videos.get, { id });
+    expect(JSON.stringify(shown)).not.toContain("tok_abc123def456ghi");
+    expect(Object.keys(shown ?? {})).not.toContain("attachment");
+    const job = await t.mutation(api.worker.claimNext, { secret });
+    expect(job?.attachment).toBe("tok_abc123def456ghi");
+    const stored = await t.run(async (ctx) => "attachment" in (await ctx.db.get(id))!);
+    expect(stored).toBe(false);
+  });
+
+  test("a video without an attachment claims with none", async () => {
+    const t = makeTest();
+    const u = await addUser(t, "alice");
+    await addVideo(t, u, { status: "queued" });
+    const job = await t.mutation(api.worker.claimNext, { secret });
+    expect(job?.attachment).toBeNull();
   });
 });
