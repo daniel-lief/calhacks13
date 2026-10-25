@@ -1,0 +1,12 @@
+{
+  "name": "animai-backend",
+  "description": "Convex functions for Animai (database, file storage, auth)",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.48.0"
+  },
+  "private": true
+}
