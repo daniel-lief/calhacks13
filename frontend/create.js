@@ -15,7 +15,6 @@ const EXAMPLES = [
 ];
 
 const STEPS = ["writing", "checking", "rendering", "reviewing", "done"];
-const POLL_MS = 1500;
 
 const el = {
   form: $("#form"), topic: $("#topic"), submit: $("#submit"), examples: $("#examples"),
@@ -33,7 +32,8 @@ const el = {
 const jobPlayer = enhancePlayer(el.video);
 
 let current = null;       // job object being shown
-let pollTimer = null;
+let jobUnsubs = [];       // live Convex queries for the job being shown
+let queuePosition = 0;
 let elapsedTimer = null;
 let renderedLogCount = 0;
 let loadedVideoUrl = null;
@@ -138,10 +138,11 @@ function formPayload() {
 }
 
 async function submitJob(payload) {
+  if (!requireSignIn("Sign in to make videos")) return;
   el.submit.disabled = true;
   try {
-    const job = await api("/api/jobs", { method: "POST", body: JSON.stringify(payload) });
-    location.hash = `#/v/${job.id}`;
+    const id = await call("mutation", "videos:create", payload);
+    location.hash = `#/v/${id}`;
   } catch (err) {
     alert(`Couldn't start: ${err.message}`);
   } finally {
@@ -167,7 +168,7 @@ function showComposer() {
 }
 
 function showJob(id) {
-  if (current?.id === id && pollTimer) return;
+  if (current?.id === id && jobUnsubs.length) return;
   stopJob();
   stopPreview();
   renderedLogCount = 0;
@@ -186,29 +187,36 @@ function showJob(id) {
   el.jobTopic.textContent = "";
   el.jobTags.hidden = true;
   closeTagEditor();
-  poll(id);
+  // Live: progress, log lines and the finished video arrive as the worker reports them
+  queuePosition = 0;
+  jobUnsubs = [
+    watch("videos:get", { id }, (job) => {
+      if (job) renderJob(job);
+      else showMissingJob();
+    }, showMissingJob),
+    watch("videos:logs", { id }, renderLogs),
+    watch("videos:queuePosition", { id }, (n) => {
+      queuePosition = n;
+      if (current) renderJob(current);
+    }),
+  ];
+}
+
+function showMissingJob() {
+  el.jobTitle.textContent = "Video not found";
+  el.stage.textContent = "It may have been deleted, or it belongs to someone else.";
+  el.progressWrap.hidden = false;
 }
 
 function stopJob() {
-  clearTimeout(pollTimer);
-  pollTimer = null;
+  jobUnsubs.forEach((stop) => stop());
+  jobUnsubs = [];
   clearInterval(elapsedTimer);
   current = null;
   el.video.pause();
 }
 
 // --- Job view ----------------------------------------------------------------
-
-async function poll(id) {
-  try {
-    const job = await api(`/api/jobs/${id}`);
-    renderJob(job);
-    pollTimer = ACTIVE.has(job.status) ? setTimeout(() => poll(id), POLL_MS) : null;
-  } catch (err) {
-    el.jobTitle.textContent = "Video not found";
-    el.stage.textContent = err.message;
-  }
-}
 
 function renderJob(job) {
   current = job;
@@ -233,7 +241,7 @@ function renderJob(job) {
   el.progressWrap.hidden = !active;
   el.progressBar.style.width = `${Math.round(job.progress * 100)}%`;
   el.stage.textContent = job.status === "queued"
-    ? `Waiting in queue${job.queue_position > 1 ? ` (#${job.queue_position})` : ""}`
+    ? `Waiting in queue${queuePosition > 1 ? ` (#${queuePosition})` : ""}`
     : job.stage;
 
   // Elapsed
@@ -264,15 +272,21 @@ function renderJob(job) {
   }
   el.player.hidden = !job.video_url;
   el.newVideo.hidden = active;
-  el.togglePublic.hidden = job.sample;
+  el.togglePublic.hidden = !job.ownedByMe;
   el.togglePublic.textContent = job.public ? "Remove from feed" : "Post to feed";
 
   // Failure
   el.failure.hidden = job.status !== "failed";
   if (job.status === "failed") el.failureMsg.textContent = job.error || "Something went wrong.";
 
-  // Log (append-only)
-  const logs = job.logs || [];
+}
+
+// "Behind the scenes": the newest 300 lines, appended as they arrive
+function renderLogs(logs) {
+  if (logs.length < renderedLogCount) {
+    el.log.innerHTML = "";
+    renderedLogCount = 0;
+  }
   for (const entry of logs.slice(renderedLogCount)) {
     const li = document.createElement("li");
     li.className = entry.kind;
@@ -290,7 +304,7 @@ function renderJob(job) {
 async function loadCode() {
   if (!current?.code_url || codeLoadedFor === current.video_url) return;
   try {
-    const res = await fetch(`${current.code_url}?v=${Date.now()}`);
+    const res = await fetch(current.code_url);
     const text = await res.text();
     el.code.innerHTML = highlightPython(text);
     el.code.dataset.raw = text;
@@ -318,9 +332,7 @@ el.copyCode.addEventListener("click", async () => {
 el.togglePublic.addEventListener("click", async () => {
   if (!current) return;
   try {
-    const updated = await api(`/api/jobs/${current.id}`, { method: "PATCH", body: JSON.stringify({ public: !current.public }) });
-    current.public = updated.public;
-    el.togglePublic.textContent = current.public ? "Remove from feed" : "Post to feed";
+    await call("mutation", "videos:setPublic", { id: current.id, public: !current.public });  // live query re-renders
   } catch (err) { alert(err.message); }
 });
 
@@ -328,7 +340,7 @@ el.togglePublic.addEventListener("click", async () => {
 
 function renderTags(job) {
   const tags = job.tags || [];
-  el.jobTags.hidden = tags.length === 0 && (job.sample || job.status !== "done");
+  el.jobTags.hidden = tags.length === 0 && (!job.ownedByMe || job.status !== "done");
   el.tagList.replaceChildren(...topTags(job).map((t) => {
     const link = document.createElement("a");
     link.className = "chip";
@@ -336,7 +348,7 @@ function renderTags(job) {
     link.textContent = t;
     return link;
   }));
-  el.editTags.hidden = job.sample || !el.tagForm.hidden;
+  el.editTags.hidden = !job.ownedByMe || !el.tagForm.hidden;
   el.editTags.textContent = tags.length ? "Edit tags" : "Add tags";
 }
 
@@ -362,8 +374,7 @@ el.tagForm.addEventListener("submit", async (e) => {
   if (!current) return;
   const tags = el.tagInput.value.split(",").map((t) => t.trim()).filter(Boolean);
   try {
-    const updated = await api(`/api/jobs/${current.id}`, { method: "PATCH", body: JSON.stringify({ tags }) });
-    current.tags = updated.tags;
+    current.tags = await call("mutation", "videos:setTags", { id: current.id, tags });
     closeTagEditor();
   } catch (err) { alert(`Couldn't save tags: ${err.message}`); }
 });

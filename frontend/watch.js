@@ -24,21 +24,41 @@ const watchPlayer = enhancePlayer(wv.video);
 
 let watching = null;      // { job, video, transcript, lines, current, alwaysOn } — shaped for the transcript helpers
 let watchQuery = "";
+let stopWatching = null;  // unsubscribes from the live video query
 
-async function showVideo(id) {
+function showVideo(id) {
   const filter = readFilter();
   watchQuery = filterQuery(filter);
+  stopWatching?.();
+  watching = null;
   wv.video.pause();
   wv.code.hidden = true;
   wv.tagForm.hidden = true;
 
-  let job;
-  try { job = await api(`/api/jobs/${id}`); } catch { job = null; }
-  if ($("#screen-video").hidden) return;
-  wv.layout.hidden = !job;
-  wv.missing.hidden = !!job;
-  if (!job) return;
+  // Live: likes, views, tags and visibility update by themselves
+  stopWatching = watch("videos:get", { id }, (job) => {
+    if ($("#screen-video").hidden) return;
+    wv.layout.hidden = !job;
+    wv.missing.hidden = !!job;
+    if (!job) {
+      wv.video.pause();
+      watching = null;
+      return;
+    }
+    if (watching?.job.id === job.id) {
+      watching.job = job;
+      renderWatch(job);
+      renderChapterList(job);
+      return;
+    }
+    startVideo(job, filter);
+  }, () => {
+    wv.layout.hidden = true;
+    wv.missing.hidden = false;
+  });
+}
 
+function startVideo(job, filter) {
   watching = { job, video: wv.video, transcript: wv.transcript, lines: null, current: -1, alwaysOn: true };
   renderWatch(job);
   renderChapterList(job);
@@ -62,6 +82,8 @@ async function showVideo(id) {
 }
 
 function leaveVideo() {
+  stopWatching?.();
+  stopWatching = null;
   wv.video.pause();
   watching = null;
 }
@@ -99,7 +121,8 @@ function renderWatch(job) {
   wv.title.textContent = job.title || job.topic;
   wv.meta.textContent = `${author(job)} - ${timeAgo(job.created_at)} - ${plural(job.views || 0, "view")}`;
   wv.prompt.textContent = `Prompt: ${job.topic}`;
-  wv.voice.textContent = job.options?.narration === false ? "No narration" : `Narrated by ${job.voice_name}`;
+  if (job.options?.narration === false) wv.voice.textContent = "No narration";
+  else voiceName(job.voice).then((name) => { wv.voice.textContent = `Narrated by ${name}`; });
   wv.tags.replaceChildren(...topTags(job).map((t) => {
     const link = document.createElement("a");
     link.className = "chip";
@@ -113,7 +136,7 @@ function renderWatch(job) {
   like.type = "button";
   like.className = "watch-action";
   const renderLike = () => {
-    const on = likedIds.has(job.id);
+    const on = !!job.likedByMe;
     like.classList.toggle("liked", on);
     like.setAttribute("aria-pressed", String(on));
     like.setAttribute("aria-label", on ? "Unlike" : "Like");
@@ -121,9 +144,7 @@ function renderWatch(job) {
   };
   renderLike();
   like.addEventListener("click", async () => {
-    const on = !likedIds.has(job.id);
-    job.likes = Math.max(0, (job.likes || 0) + (on ? 1 : -1));
-    const pending = setLiked(job, on);
+    const pending = setLiked(job, !job.likedByMe);
     renderLike();
     await pending;
     renderLike();
@@ -140,8 +161,8 @@ function renderWatch(job) {
   wv.actions.replaceChildren(...actions);
 
   // Controls for your own videos
-  wv.owner.hidden = job.sample;
-  if (!job.sample) {
+  wv.owner.hidden = !job.ownedByMe;
+  if (job.ownedByMe) {
     wv.publicToggle.textContent = job.public ? "Public" : "Private";
     wv.publicToggle.title = job.public ? "Shown in the feed. Click to make private." : "Only in your library. Click to post to the feed.";
     wv.toggleCode.hidden = !job.code_url;
@@ -156,9 +177,11 @@ function renderWatch(job) {
 async function renderUpNext(job, filter) {
   let list = [];
   if (filter.from === "saved") {
-    list = await api("/api/saved").catch(() => []);
+    list = currentUser ? await call("query", "videos:mySaved").catch(() => []) : [];
   } else if (filter.from === "library") {
-    const [created, saved] = await Promise.all([api("/api/jobs").catch(() => []), api("/api/saved").catch(() => [])]);
+    const [created, saved] = currentUser
+      ? await Promise.all([call("query", "videos:myLibrary").catch(() => []), call("query", "videos:mySaved").catch(() => [])])
+      : [[], []];
     list = [...created.filter((j) => j.status === "done" && j.has_video), ...saved].sort((a, b) => b.created_at - a.created_at);
   } else {
     list = (await loadFeed()).filter((j) => matches(j, filter));
@@ -197,9 +220,7 @@ wv.publicToggle.addEventListener("click", async () => {
   const job = watching?.job;
   if (!job) return;
   try {
-    const updated = await api(`/api/jobs/${job.id}`, { method: "PATCH", body: JSON.stringify({ public: !job.public }) });
-    job.public = updated.public;
-    renderWatch(job);
+    await call("mutation", "videos:setPublic", { id: job.id, public: !job.public });  // the live query re-renders
   } catch (err) { alert(err.message); }
 });
 
@@ -216,10 +237,8 @@ wv.tagForm.addEventListener("submit", async (e) => {
   if (!job) return;
   const tags = wv.tagInput.value.split(",").map((t) => t.trim()).filter(Boolean);
   try {
-    const updated = await api(`/api/jobs/${job.id}`, { method: "PATCH", body: JSON.stringify({ tags }) });
-    job.tags = updated.tags;
+    await call("mutation", "videos:setTags", { id: job.id, tags });
     wv.tagForm.hidden = true;
-    renderWatch(job);
   } catch (err) { alert(`Couldn't save tags: ${err.message}`); }
 });
 
@@ -230,7 +249,7 @@ wv.toggleCode.addEventListener("click", async () => {
   wv.toggleCode.textContent = wv.code.hidden ? "View code" : "Hide code";
   if (wv.code.hidden || wv.codeText.dataset.for === job.id) return;
   try {
-    const text = await (await fetch(`${job.code_url}?v=${Date.now()}`)).text();
+    const text = await (await fetch(job.code_url)).text();
     wv.codeText.innerHTML = highlightPython(text);
     wv.codeText.dataset.raw = text;
     wv.codeText.dataset.for = job.id;
@@ -251,7 +270,8 @@ wv.remove.addEventListener("click", async () => {
   const job = watching?.job;
   if (!job || !confirm(`Delete “${job.title || job.topic}”?`)) return;
   try {
-    await api(`/api/jobs/${job.id}`, { method: "DELETE" });
+    stopWatching?.();
+    await call("mutation", "videos:remove", { id: job.id });
     location.hash = "#/library";
   } catch (err) { alert(err.message); }
 });

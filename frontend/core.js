@@ -1,7 +1,8 @@
 "use strict";
 
-// Shared by every screen: API access, formatting helpers, likes, and the page
-// atmosphere (preloader, text reveals, cursor).
+// Shared by every screen: the FastAPI helper (health, voices), likes, saves and views
+// (through Convex, see convex.js), formatting helpers, and the page atmosphere
+// (preloader, text reveals, cursor).
 
 const ACTIVE = new Set(["queued", "writing", "checking", "rendering", "reviewing"]);
 const STATUS_LABEL = {
@@ -37,7 +38,7 @@ async function checkHealth() {
   try {
     const h = await api("/api/health");
     document.querySelectorAll(".footer-meta").forEach((n) => {
-      n.textContent = `Animai - ${h.model.replace(/^claude-/, "")} - $${h.total_cost_usd.toFixed(2)} spent`;
+      n.textContent = `Animai - ${h.model.replace(/^claude-/, "")}`;
     });
     const missing = [["Claude", h.anthropic], ["FFmpeg", h.ffmpeg], ["LaTeX", h.latex], ["Voice", h.tts]]
       .filter(([, ok]) => !ok).map(([name]) => name);
@@ -49,37 +50,36 @@ async function checkHealth() {
   }
 }
 
-// --- Likes (who liked what is remembered per browser; counts live on the server)
+// --- Likes, saves and views (stored in Convex per user) ---------------------------
 
-const likedIds = new Set(readLiked());
-
-function readLiked() {
-  try { return JSON.parse(localStorage.getItem("animai-liked") || "[]"); } catch { return []; }
-}
-
+/** Like or unlike; updates `job` in place. Signed-out visitors get the sign-in panel instead. */
 async function setLiked(job, liked) {
-  if (liked) likedIds.add(job.id); else likedIds.delete(job.id);
-  try { localStorage.setItem("animai-liked", JSON.stringify([...likedIds])); } catch { /* storage blocked */ }
+  if (!requireSignIn("Sign in to like videos")) return job.likes;
+  const before = { likedByMe: job.likedByMe, likes: job.likes };
+  job.likedByMe = liked;
+  job.likes = Math.max(0, (job.likes || 0) + (liked ? 1 : -1));
   try {
-    const updated = await api(`/api/jobs/${job.id}/like`, { method: "POST", body: JSON.stringify({ liked }) });
-    job.likes = updated.likes;
-  } catch { /* keep the optimistic state */ }
+    job.likes = (await call("mutation", "videos:like", { id: job.id, liked })).likes;
+  } catch {
+    Object.assign(job, before);
+  }
   return job.likes;
 }
 
-// --- Saves (stored on the server; only other people's posts can be saved) --------
-
+/** Other people's videos can be saved to your library (shown to signed-out visitors too). */
 function canSave(job) {
-  return !!job.sample;
+  return !job.ownedByMe;
 }
 
 async function setSaved(job, saved) {
-  job.saved = saved;
+  if (!requireSignIn("Sign in to save videos")) return job.savedByMe;
+  job.savedByMe = saved;
   try {
-    const updated = await api(`/api/jobs/${job.id}/save`, { method: "POST", body: JSON.stringify({ saved }) });
-    job.saved = updated.saved;
-  } catch { job.saved = !saved; }
-  return job.saved;
+    await call("mutation", "videos:save", { id: job.id, saved });
+  } catch {
+    job.savedByMe = !saved;
+  }
+  return job.savedByMe;
 }
 
 const viewedIds = new Set();   // count each video once per visit
@@ -88,7 +88,16 @@ function countView(job) {
   if (viewedIds.has(job.id)) return;
   viewedIds.add(job.id);
   job.views = (job.views || 0) + 1;
-  api(`/api/jobs/${job.id}/view`, { method: "POST" }).catch(() => {});
+  call("mutation", "videos:recordView", { id: job.id }).catch(() => {});
+}
+
+// Voice display names, from the server's voice list
+let voiceList = null;
+async function voiceName(id) {
+  voiceList ??= api("/api/voices").catch(() => ({ default: "", voices: [] }));
+  const { default: fallback, voices } = await voiceList;
+  const wanted = id || fallback;
+  return voices.find((v) => v.id === wanted)?.name || "Andrew";
 }
 
 const HEART = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.6 4.5 7.1 4.5c2 0 3.6 1.1 4.9 2.8 1.3-1.7 2.9-2.8 4.9-2.8 3.5 0 5.7 3.5 4.4 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>`;
@@ -128,7 +137,7 @@ function topTags(job) {
 }
 
 function author(job) {
-  return job.sample ? "@animai" : "@you";
+  return `@${job.author?.username || "unknown"}`;
 }
 
 function slug(text) {
