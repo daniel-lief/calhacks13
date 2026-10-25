@@ -52,3 +52,19 @@ class Convex:
                 if attempt == RETRIES - 1:
                     raise
                 time.sleep(1.5 * (attempt + 1))
+
+
+def user_for_token(url: str, token: str, transport: httpx.BaseTransport | None = None) -> dict | None:
+    """Who a browser session token belongs to (Convex's users:me), or None if it isn't valid."""
+    try:
+        with httpx.Client(timeout=15.0, transport=transport) as http:
+            response = http.post(
+                f"{url.rstrip('/')}/api/query",
+                json={"path": "users:me", "args": {}, "format": "json"},
+                headers={"Authorization": f"Bearer {token}"},
+            )
+        data = response.json()
+    except (httpx.HTTPError, ValueError):
+        return None
+    return data.get("value") if data.get("status") == "success" else None
+

@@ -9,12 +9,14 @@ import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import config
+from . import attachments, config
 from .chapters import narration_segments, suggest_chapters
 from .generator import GenerationError, SceneAuthor
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
 from .tagger import narration_text, suggest_tags
 from .validate import check_scene, count_voiceovers, extract_tags, extract_title
+
+LOST_PDF = "The attached PDF was lost when the server restarted. Please try again."
 
 # Field names the pipeline uses -> names in the Convex videos table
 CONVEX_FIELDS = {"cost_usd": "costUsd", "finished_at": "finishedAt"}
@@ -46,6 +48,7 @@ class Job:
     title: str | None = None
     tags: list[str] = field(default_factory=list)
     started: float = field(default_factory=time.time)
+    pdf: bytes | None = None    # private context; only ever in memory, and never logged
 
     @property
     def dir(self) -> Path:
@@ -68,6 +71,10 @@ class JobManager:
                   attempts=int(claimed.get("attempts") or 0))
         job.dir.mkdir(parents=True, exist_ok=True)
         try:
+            if claimed.get("attachment"):
+                job.pdf = attachments.take(claimed["attachment"])
+                if job.pdf is None:
+                    raise PipelineFailure(LOST_PDF)
             self._pipeline(job)
         except (PipelineFailure, GenerationError) as exc:
             self._report_failure(job, str(exc), str(exc))
@@ -120,7 +127,7 @@ class JobManager:
         self._update(job, model=config.CLAUDE_MODEL)
         self._update(job, status="writing", stage="Claude is planning the video…", progress=0.03,
                      log=f"Planning an explanation of “{job.topic}”")
-        code = author.write(job.topic, opts.length, opts.extra)
+        code = author.write(job.topic, opts.length, opts.extra, pdf=job.pdf)
         self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 

@@ -39,7 +39,7 @@ class FakeAuthor:
     def __init__(self, on_event):
         self.cost_usd = 0.01
 
-    def write(self, topic, length, extra):
+    def write(self, topic, length, extra, pdf=None):
         return CODE
 
     def repair(self, problem, stage):
@@ -94,7 +94,7 @@ class WorkerTest(unittest.TestCase):
 
     def test_generation_error_marks_the_video_failed(self):
         class Refusing(FakeAuthor):
-            def write(self, *a):
+            def write(self, *a, **kw):
                 raise GenerationError("Claude declined to make a video about this topic.")
 
         convex = FakeConvex()
@@ -146,6 +146,33 @@ class WorkerTest(unittest.TestCase):
         convex.mutation = mutation
         worker.run_forever(convex, stop, poll_seconds=0)
         self.assertEqual([c["id"] if c else None for c in claims], ["vid1", "vid2", None])
+
+    def test_attached_pdf_reaches_claude_and_leaves_no_trace(self):
+        from backend import attachments
+        seen = {}
+
+        class Recording(FakeAuthor):
+            def write(self, topic, length, extra, pdf=None):
+                seen["pdf"] = pdf
+                return CODE
+
+        token = attachments.put(b"%PDF-1.7 homework")
+        convex = FakeConvex()
+        with mock.patch.object(jobs, "SceneAuthor", Recording):
+            jobs.JobManager(convex).run(dict(JOB, attachment=token))
+        self.assertEqual(seen["pdf"], b"%PDF-1.7 homework")
+        self.assertIsNone(attachments.take(token), "the PDF is gone from memory once used")
+        sent = json.dumps([args for _, args in convex.calls]).lower()  # what Convex stores and shows
+        for trace in (token.lower(), "pdf", "attach", "document"):
+            self.assertNotIn(trace, sent)
+        self.assertEqual(convex.updates()[-1]["fields"]["status"], "done")
+
+    def test_lost_pdf_fails_the_video_with_a_clear_message(self):
+        convex = FakeConvex()
+        jobs.JobManager(convex).run(dict(JOB, attachment="tok_lost_lost_lost_lost"))
+        final = convex.updates()[-1]["fields"]
+        self.assertEqual(final["status"], "failed")
+        self.assertEqual(final["error"], "The attached PDF was lost when the server restarted. Please try again.")
 
 
 if __name__ == "__main__":

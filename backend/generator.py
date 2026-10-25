@@ -29,8 +29,12 @@ class SceneAuthor:
         self.on_event = on_event  # (kind, text): kind is "thinking" | "progress" | "usage"
         self.cost_usd = 0.0
 
-    def write(self, topic: str, length: str, extra: str = "") -> str:
-        return self._turn(prompts.initial_request(topic, length, extra), require_code=True)
+    def write(self, topic: str, length: str, extra: str = "", pdf: bytes | None = None) -> str:
+        """The first draft. A PDF, if given, is private context: it goes first in the
+        conversation, so every repair and review turn can still see it."""
+        content = (prompts.initial_request_with_pdf(topic, length, extra, pdf) if pdf
+                   else prompts.initial_request(topic, length, extra))
+        return self._turn(content, require_code=True)
 
     def repair(self, error: str, stage: str) -> str:
         return self._turn(prompts.repair_request(error, stage), require_code=True)

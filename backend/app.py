@@ -8,12 +8,13 @@ import hashlib
 import re
 import threading
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import config
+from . import attachments, config
 from .convex_api import Convex
+from .convex_api import user_for_token as _convex_user
 from .voices import VOICE_IDS, VOICES, default_voice, preview_path
 from .worker import run_forever
 
@@ -43,6 +44,28 @@ def stop_worker():
 def client_config():
     """What the browser needs to reach Convex."""
     return {"convexUrl": config.CONVEX_URL}
+
+
+def user_for_token(token: str) -> dict | None:
+    return _convex_user(config.CONVEX_URL, token) if config.CONVEX_URL else None
+
+
+@app.post("/api/attachments", status_code=201)
+async def upload_attachment(request: Request):
+    """Private PDF context for a video about to be created. Held in memory only; see attachments.py."""
+    auth = request.headers.get("authorization", "")
+    token = auth[7:] if auth.lower().startswith("bearer ") else ""
+    if not token or not user_for_token(token):
+        raise HTTPException(401, "Sign in first")
+    data = bytearray()
+    async for chunk in request.stream():
+        data.extend(chunk)
+        if len(data) > attachments.MAX_BYTES:
+            raise HTTPException(422, attachments.LIMIT_MESSAGE)
+    problem = attachments.problem_with(bytes(data))
+    if problem:
+        raise HTTPException(422, problem)
+    return {"token": attachments.put(bytes(data))}
 
 
 @app.get("/api/voices")

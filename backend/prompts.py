@@ -1,6 +1,7 @@
 """Prompts for writing, repairing and reviewing Animai explainer scenes."""
 from __future__ import annotations
 
+import base64
 import hashlib
 import os
 import subprocess
@@ -172,6 +173,32 @@ def initial_request(topic: str, length: str, extra: str = "") -> str:
     duration, beats = LENGTHS.get(length, LENGTHS["medium"])
     extra_text = f"\n\nAdditional guidance from the viewer: {extra}" if extra else ""
     return INITIAL_TEMPLATE.format(topic=topic, duration=duration, beats=beats, extra=extra_text)
+
+
+PDF_GUIDANCE = (
+    "The viewer also attached the document above as private context (for example homework, "
+    "lecture slides or notes). Use it to decide what to explain and how: work through the "
+    "problems it poses, follow its notation, and match its level. The finished video must give "
+    "no sign that a document was used: never mention a document, PDF, file, upload, attachment, "
+    "homework, assignment, worksheet, slides or lecture notes in the narration, on screen, in the "
+    "TITLE or in the TAGS, and don't say \"as shown\" or \"in your problem\". Present the "
+    "material as your own explanation of the topic."
+)
+
+
+def initial_request_with_pdf(topic: str, length: str, extra: str, pdf: bytes) -> list[dict]:
+    """The first message when the viewer attached a PDF: the document, then the usual request."""
+    return [
+        {
+            "type": "document",
+            "source": {
+                "type": "base64",
+                "media_type": "application/pdf",
+                "data": base64.standard_b64encode(pdf).decode("ascii"),
+            },
+        },
+        {"type": "text", "text": f"{initial_request(topic, length, extra)}\n\n{PDF_GUIDANCE}"},
+    ]
 
 
 def repair_request(error: str, stage: str) -> str:
