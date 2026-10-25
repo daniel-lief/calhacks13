@@ -11,6 +11,11 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
+load_dotenv(Path(__file__).resolve().parent / ".env.local")  # Convex deployment URL + worker secret
+
+CONVEX_URL = os.getenv("CONVEX_URL", "")
+WORKER_SECRET = os.getenv("WORKER_SECRET", "")
+WORKER_POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "3"))
 
 DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "data")).resolve()
 JOBS_DIR = DATA_DIR / "jobs"
