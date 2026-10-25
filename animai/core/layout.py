@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from manimlib import Mobject, ORIGIN, UP, DOWN, LEFT, RIGHT
+from animlib import Mobject, ORIGIN, UP, DOWN, LEFT, RIGHT
 
 __all__ = ["Region", "REGIONS", "region", "fit", "keep_in_frame", "overlaps", "resolve_overlaps"]
 

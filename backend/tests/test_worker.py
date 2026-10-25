@@ -39,7 +39,7 @@ class FakeAuthor:
     def __init__(self, on_event):
         self.cost_usd = 0.01
 
-    def write(self, topic, length, extra, theme="bubble", pdf=None):
+    def write(self, topic, length, extra, theme="bubble", pdf=None, research=None):
         return CODE
 
     def repair(self, problem, stage):
@@ -70,6 +70,7 @@ class WorkerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         patches = [
+            mock.patch.object(jobs, "research_topic", return_value=jobs.ResearchResult("skipped", "Research disabled in unit tests.")),
             mock.patch.object(jobs.config, "DATA_DIR", self.tmp),
             mock.patch.object(jobs, "SceneAuthor", FakeAuthor),
             mock.patch.object(jobs, "render_scene", fake_render(self.tmp)),
@@ -152,7 +153,7 @@ class WorkerTest(unittest.TestCase):
         seen = {}
 
         class Recording(FakeAuthor):
-            def write(self, topic, length, extra, theme="bubble", pdf=None):
+            def write(self, topic, length, extra, theme="bubble", pdf=None, research=None):
                 seen["pdf"] = pdf
                 return CODE
 

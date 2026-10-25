@@ -47,6 +47,7 @@ export async function toPublicVideo(ctx: QueryCtx, video: Doc<"videos">, viewer:
     model: video.model ?? "",
     cost_usd: video.costUsd,
     options: video.options,
+    research: video.research ?? null,
     tags: video.tags,
     chapters: video.chapters,
     public: video.public,

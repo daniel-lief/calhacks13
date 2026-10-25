@@ -4,7 +4,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type MutationCtx } from "./_generated/server";
-import { ACTIVE_STATUSES, chapter, STATUSES, videoOptions } from "./schema";
+import { ACTIVE_STATUSES, chapter, STATUSES, videoOptions, videoResearch } from "./schema";
 
 const LOG_KEEP = 300;
 const STALE_ERROR = "The server restarted while this video was being made.";
@@ -52,6 +52,7 @@ export const update = mutation({
     fields: v.object({
       status: v.optional(v.union(...STATUSES.map((s) => v.literal(s)))),
       stage: v.optional(v.string()),
+      research: v.optional(videoResearch),
       progress: v.optional(v.number()),
       attempts: v.optional(v.number()),
       title: v.optional(v.string()),

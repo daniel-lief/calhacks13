@@ -299,25 +299,19 @@
             <p id="job-stage" class="t-20 muted"></p>
           </div>
 
+          <div id="job-ready" class="job-ready" role="status" aria-live="polite" aria-atomic="true" hidden>
+            <span class="job-ready-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
+            <div><h3>Video ready</h3><p>All done. Press play to watch your video.</p></div>
+          </div>
+
           <div id="player" class="player" hidden>
             <video id="video" playsinline preload="metadata"></video>
-            <div class="actions t-20">
-              <a id="download" class="link-button" download>Download MP4</a>
-              <button id="toggle-public" class="link-button" type="button"></button>
-              <button id="toggle-code" class="link-button" type="button">View ManimGL code</button>
-              <button id="new-video" class="link-button muted" type="button">Make another</button>
-            </div>
-            <div id="code-panel" class="code-panel" hidden>
-              <div class="code-bar t-16"><span class="muted">scene.py</span><button id="copy-code" type="button" class="link-button">Copy</button></div>
-              <pre><code id="code"></code></pre>
-            </div>
           </div>
 
           <div id="failure" class="failure" hidden>
             <p id="failure-msg" class="t-20"></p>
             <div class="actions t-20">
               <button id="retry" class="link-button" type="button">Try again</button>
-              <button id="failure-new" class="link-button muted" type="button">Make another</button>
             </div>
           </div>
 

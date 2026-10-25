@@ -1,8 +1,8 @@
 """
-Prepares the local ManimGL engine (../manimlib) before anything renders.
+Prepares the local ManimGL engine (../animlib) before anything renders.
 
 Must run before the first Scene is created, which is why `animai/__init__.py`
-calls `bootstrap()` before importing manimlib.
+calls `bootstrap()` before importing animlib.
 """
 from __future__ import annotations
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 import functools
 import re
 
-from manimlib import AnimationGroup, Scene, Succession, Tex, TexText, VMobject
-from manimlib.mobject.svg.string_mobject import StringMobject
+from animlib import AnimationGroup, Scene, Succession, Tex, TexText, VMobject
+from animlib.mobject.svg.string_mobject import StringMobject
 
 _applied = False
 

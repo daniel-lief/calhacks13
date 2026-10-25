@@ -22,7 +22,7 @@ WARNING_RE = re.compile(r"@@WARNING (.*)")
 ERROR_HINT_RE = re.compile(r"error|exception|failed", re.IGNORECASE)
 # Traceback frames from the launcher and engine entry points, which bury the scene's own lines
 LAUNCHER_FRAME_RE = re.compile(
-    r'\n  File "(?:<frozen runpy>|[^"]*(?:manimlib[\\/](?:__main__|scene[\\/]scene)|animai[\\/](?:__main__|render))\.py)"[^\n]*\n[^\n]*')
+    r'\n  File "(?:<frozen runpy>|[^"]*(?:animlib[\\/](?:__main__|scene[\\/]scene)|animai[\\/](?:__main__|render))\.py)"[^\n]*\n[^\n]*')
 PROGRESS_LINE_RE = re.compile(r"\n(?:Writing|Rendering) [^\n]*")
 
 

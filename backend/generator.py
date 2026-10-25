@@ -31,19 +31,19 @@ class SceneAuthor:
         self.cost_usd = 0.0
 
     def write(self, topic: str, length: str, extra: str = "", theme: str = "bubble",
-              research: dict, pdf: bytes | None = None) -> str:
+              research: dict | None = None, pdf: bytes | None = None) -> str:
+        note = (f'\n\nSelected color theme: {theme_name(theme)}. Set THEME = "{theme}". '
+                'Use get_theme() and palette_color(i) for all colors, including new shapes and labels. '
+                'Keep Fredoka SemiBold, JetBrains Mono, rounded cards and all animation styling unchanged. '
+                'Retain this palette during repairs and visual review.')
+        if research:
+            note += prompts.research_context(research)
         if pdf:
             request = prompts.initial_request_with_pdf(topic, length, extra, pdf)
             request[-1]["text"] += note
         else:
             request = prompts.initial_request(topic, length, extra)
-        request += (f'\n\nSelected color theme: {theme_name(theme)}. Set THEME = "{theme}". '
-                    'Use get_theme() and palette_color(i) for all colors, including new shapes and labels. '
-                    'Keep Fredoka SemiBold, JetBrains Mono, rounded cards and all animation styling unchanged. '
-                    'Retain this palette during repairs and visual review.')
-        if research:
-            request += prompts.research_context(research)
-        
+            request += note
         return self._turn(request, require_code=True)
 
     def repair(self, error: str, stage: str) -> str:

@@ -23,29 +23,8 @@ app = FastAPI(title="Animai")
 _worker_stop = threading.Event()
 
 
-<<<<<<< HEAD
-class CreateJob(BaseModel):
-    topic: str = Field(min_length=2, max_length=300)
-    length: Literal["short", "medium", "long"] = "medium"
-    quality: Literal["low", "medium", "high"] = "medium"
-    narration: bool = True
-    review: bool = True
-    research: bool = True
-    extra: str = Field(default="", max_length=1000)
-    public: bool = False
-    voice: str = ""
-    theme: str = Field(default=DEFAULT_THEME, max_length=32)
-
-    @field_validator("theme")
-    @classmethod
-    def valid_theme(cls, value):
-        if value not in THEME_IDS:
-            raise ValueError("Unknown video color theme")
-        return value
-=======
 def convex_configured() -> bool:
     return bool(config.CONVEX_URL and config.WORKER_SECRET)
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 
 
 @app.on_event("startup")
@@ -122,84 +101,6 @@ def health():
     }
 
 
-<<<<<<< HEAD
-@app.post("/api/jobs", status_code=201)
-def create_job(body: CreateJob):
-    if body.voice and body.voice not in VOICE_IDS:
-        raise HTTPException(422, "Unknown voice")
-    topic = " ".join(body.topic.split())
-    job = jobs.create(topic, JobOptions(
-        length=body.length, quality=body.quality, narration=body.narration,
-        review=body.review, research=body.research, extra=body.extra.strip(), voice=body.voice, theme=body.theme,
-    ), public=body.public)
-    return jobs.serialize(job)
-
-
-@app.get("/api/jobs")
-def list_jobs():
-    return [jobs.serialize(j, include_logs=False) for j in jobs.list()]
-
-
-@app.get("/api/feed")
-def feed():
-    return [jobs.serialize(j, include_logs=False) for j in jobs.feed()]
-
-
-@app.get("/api/saved")
-def saved():
-    return [jobs.serialize(j, include_logs=False) for j in jobs.saved()]
-
-
-@app.get("/api/jobs/{job_id}")
-def get_job(job_id: str):
-    job = jobs.get(job_id)
-    if not job:
-        raise HTTPException(404, "No such job")
-    data = jobs.serialize(job)
-    data["queue_position"] = jobs.queue_position(job) if job.status == "queued" else 0
-    return data
-
-
-@app.delete("/api/jobs/{job_id}", status_code=204)
-def delete_job(job_id: str):
-    if not jobs.delete(job_id):
-        raise HTTPException(409, "Job not found, still running, or a sample")
-
-
-@app.patch("/api/jobs/{job_id}")
-def update_job(job_id: str, body: UpdateJob):
-    job = jobs.update(job_id, public=body.public, tags=body.tags)
-    if not job:
-        raise HTTPException(404, "No such job, or it's a sample")
-    return jobs.serialize(job, include_logs=False)
-
-
-@app.post("/api/jobs/{job_id}/like")
-def like_job(job_id: str, body: Like):
-    if not jobs.like(job_id, body.liked):
-        raise HTTPException(404, "No such job")
-    return jobs.serialize(jobs.get(job_id), include_logs=False)
-
-
-@app.post("/api/jobs/{job_id}/save")
-def save_job(job_id: str, body: Save):
-    if not jobs.save(job_id, body.saved):
-        raise HTTPException(404, "No such post, or it's your own video")
-    return jobs.serialize(jobs.get(job_id), include_logs=False)
-
-
-@app.post("/api/jobs/{job_id}/view", status_code=204)
-def view_job(job_id: str):
-    if not jobs.view(job_id):
-        raise HTTPException(404, "No such job")
-
-
-config.JOBS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/media", StaticFiles(directory=config.JOBS_DIR), name="media")
-config.SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/samples", StaticFiles(directory=config.SAMPLES_DIR), name="samples")
-=======
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 app.mount("/static", StaticFiles(directory=config.FRONTEND_DIR), name="static")
 
 

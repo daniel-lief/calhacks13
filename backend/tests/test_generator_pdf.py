@@ -17,6 +17,14 @@ class WritePdfTest(unittest.TestCase):
         content = self.capture()
         self.assertTrue(content.startswith(prompts.initial_request("Problem 3: projectile motion", "short", "")))
 
+    def test_research_is_retained_with_or_without_a_pdf(self):
+        brief = {"teaching_brief": {"key_concepts": ["Resolve forces into components"]}, "sources": []}
+        plain = self.capture(research=brief, theme="ocean")
+        with_pdf = self.capture(research=brief, theme="ocean", pdf=b"%PDF-1.7 fake")
+        self.assertIn("untrusted_video_research", plain)
+        self.assertIn("untrusted_video_research", with_pdf[-1]["text"])
+        self.assertIn("Resolve forces into components", with_pdf[-1]["text"])
+
     def test_the_chosen_theme_is_requested_with_or_without_a_pdf(self):
         self.assertIn('Set THEME = "ocean"', self.capture(theme="ocean"))
         self.assertIn('Set THEME = "ocean"', self.capture(theme="ocean", pdf=b"%PDF-1.7 fake")[1]["text"])

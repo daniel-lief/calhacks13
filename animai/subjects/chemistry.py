@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Arrow, Circle, DashedLine, Dot, FadeIn, Group, Indicate,
     LaggedStart, Line, Line3D, Mobject, Rotate, Rotating, RoundedRectangle, ShowCreation, Sphere,
     Succession, Tex, Text, VGroup, VMobject, VectorizedPoint, Write, UP, DOWN, LEFT, RIGHT, ORIGIN, OUT, TAU, PI,
@@ -375,7 +375,7 @@ class EnergyDiagram(VGroup):
         path = VMobject(stroke_color=theme.positive, stroke_width=4)
         path.set_points_smoothly([self._p(x, e) for x, e in self._profile(peak)])
         dashed = path.copy()
-        from manimlib import DashedVMobject
+        from animlib import DashedVMobject
         dashed = DashedVMobject(path, num_dashes=40)
         tag = Label(label, size="small", color=theme.positive).scale(self._scale())
         tag.next_to(self._p(3.0, self.E[0] + (peak - self.E[0]) * 0.2), DOWN, buff=0.3)

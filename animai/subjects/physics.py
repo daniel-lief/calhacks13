@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Arrow, Circle, DashedLine, Dot, FadeIn, GrowArrow, Group,
     LaggedStart, Line, Mobject, Rectangle, RoundedRectangle, ShowCreation, Square, Succession,
     TracedPath, UpdateFromAlphaFunc, VGroup, VMobject, Write, Polygon, Arc, Rotate,
@@ -313,7 +313,7 @@ class Pendulum(VGroup):
                              stroke_color=get_theme().muted, stroke_width=2)
             return VGroup(ref, arc)
 
-        from manimlib import always_redraw
+        from animlib import always_redraw
         return always_redraw(make)
 
 
@@ -480,7 +480,7 @@ class Projectile(VGroup):
         self.ball = Dot(ORIGIN, radius=0.14, fill_color=theme.primary)
         self.path = VMobject(stroke_color=theme.muted, stroke_width=2)
         self.path.set_points_smoothly([self._pos(t) for t in np.linspace(0, self.flight_time, 40)])
-        from manimlib import DashedVMobject
+        from animlib import DashedVMobject
         self.dashed_path = DashedVMobject(self.path, num_dashes=40)
         parts = [self.ground, self.ball]
         if show_path:
@@ -570,7 +570,7 @@ class Wave(VGroup):
     @staticmethod
     def superpose(*waves: "Wave", color=None) -> VMobject:
         """A live curve equal to the sum of the given waves (keep it on screen while they move)."""
-        from manimlib import always_redraw
+        from animlib import always_redraw
         ref = waves[0]
 
         def make():

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, Circle, FadeIn, FadeOut, Line, Mobject, Rectangle, RoundedRectangle, VGroup,
     VMobject, UP, DOWN, RIGHT, FRAME_WIDTH, FRAME_HEIGHT,
 )
@@ -92,7 +92,7 @@ def make_backdrop(theme=None) -> VGroup:
     theme = theme or get_theme()
     group = VGroup()
     if theme.backdrop == "peach":
-        from manimlib.utils.color import interpolate_color
+        from animlib.utils.color import interpolate_color
         # Opaque overlapping strips keep the gradient stable in the WebGPU renderer.
         n = 192
         for i in range(n):

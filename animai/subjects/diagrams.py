@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Arrow, Circle, CurvedArrow, DashedLine, FadeIn, GrowArrow,
     Indicate, LaggedStart, Line, Mobject, Polygon, RoundedRectangle, ShowCreation, VGroup,
     Write, UP, DOWN, LEFT, RIGHT, ORIGIN, TAU, PI,
@@ -439,7 +439,7 @@ def _elbow(parent: Node, child: Node, direction) -> VGroup:
     else:
         mid_x = (a[0] + b[0]) / 2
         pts = [a, np.array([mid_x, a[1], 0]), np.array([mid_x, b[1], 0]), b]
-    from manimlib import VMobject
+    from animlib import VMobject
     path = VMobject(stroke_color=theme.muted, stroke_width=2.5)
     path.set_points_as_corners(pts)
     return path

@@ -11,7 +11,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from manimlib import Mobject, SVGMobject, VGroup, DOWN
+from animlib import Mobject, SVGMobject, VGroup, DOWN
 
 from .media import Label
 from .theme import get_theme

@@ -9,7 +9,7 @@ import heapq
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Arrow, Circle, FadeIn, FadeOut, GrowFromCenter, Indicate,
     LaggedStart, Line, Mobject, RoundedRectangle, ShowCreation, Square, Succession, Text,
     Transform, VectorizedPoint, VGroup, Write, UP, DOWN, LEFT, RIGHT, ORIGIN, PI,

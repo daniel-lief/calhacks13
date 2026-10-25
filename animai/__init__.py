@@ -1,6 +1,6 @@
 """
 Animai: narrated educational animations for every subject, built on the ManimGL engine
-(the local ../manimlib copy).
+(the local ../animlib copy).
 
 Scene files start with:
 
@@ -19,8 +19,8 @@ __version__ = "0.1.0"
 if _sys.argv[:1] != ["-m"]:
     from animai.engine import bootstrap as _bootstrap
 
-    _bootstrap()  # Must run before manimlib creates its GPU device
+    _bootstrap()  # Must run before animlib creates its GPU device
 
-    from manimlib import *  # noqa: E402,F401,F403
+    from animlib import *  # noqa: E402,F401,F403
     from animai.core import *  # noqa: E402,F401,F403
     from animai.subjects import *  # noqa: E402,F401,F403

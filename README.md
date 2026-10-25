@@ -54,7 +54,7 @@ class SilkRoad(AnimaiScene):
 
 ## The engine
 
-`manimlib/` is a local copy of [3b1b/manim](https://github.com/3b1b/manim) (master,
+`animlib/` is a local copy of [3b1b/manim](https://github.com/3b1b/manim) (master,
 WebGPU renderer), used as-is. `animai/engine.py` and `animai/core/patches.py` work
 around three problems found while building:
 
@@ -209,7 +209,7 @@ animai/            the library
   assets/          Natural Earth maps (public domain), Lucide icons (ISC), fonts (OFL)
   render.py        `python -m animai` render CLI
   docs.py          API reference generator
-manimlib/          the engine (local copy of 3b1b/manim)
+animlib/          the engine (local copy of 3b1b/manim)
 gallery/           demo scenes per subject
 backend/           FastAPI app: Claude conversation, job pipeline, renderer
 frontend/          single-page UI

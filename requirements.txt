@@ -1,4 +1,4 @@
-# Engine: the local ./manimlib copy (3b1b/manim master); these are its dependencies
+# Engine: the local ./animlib copy (3b1b/manim master); these are its dependencies
 addict
 appdirs
 audioop-lts; python_version>='3.13'

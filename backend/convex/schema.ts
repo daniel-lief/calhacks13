@@ -2,20 +2,31 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-export const STATUSES = ["queued", "writing", "checking", "rendering", "reviewing", "done", "failed"] as const;
-export const ACTIVE_STATUSES = ["queued", "writing", "checking", "rendering", "reviewing"] as const;
+export const STATUSES = ["queued", "researching", "writing", "checking", "rendering", "reviewing", "done", "failed"] as const;
+export const ACTIVE_STATUSES = ["queued", "researching", "writing", "checking", "rendering", "reviewing"] as const;
 
 export const videoOptions = v.object({
   length: v.string(),
   quality: v.string(),
   narration: v.boolean(),
   review: v.boolean(),
+  research: v.optional(v.boolean()),
   extra: v.string(),
   voice: v.string(), // edge-tts voice name; "" means the server default
   theme: v.optional(v.string()), // color palette id from animai/assets/video-themes.json; absent means "bubble"
 });
 
 export const chapter = v.object({ start: v.number(), title: v.string() });
+
+export const videoResearch = v.object({
+  status: v.union(v.literal("researching"), v.literal("ready"), v.literal("partial"), v.literal("unavailable"), v.literal("skipped")),
+  message: v.string(),
+  cached: v.optional(v.boolean()),
+  sources: v.array(v.object({
+    video_id: v.string(), url: v.string(), title: v.string(), channel: v.string(),
+    duration_seconds: v.number(), language: v.optional(v.string()), auto_generated: v.optional(v.boolean()),
+  })),
+});
 
 export default defineSchema({
   ...authTables,
@@ -43,6 +54,7 @@ export default defineSchema({
     status: v.union(...STATUSES.map((s) => v.literal(s))),
     stage: v.string(),
     progress: v.number(),
+    research: v.optional(videoResearch),
     attempts: v.number(),
     title: v.optional(v.string()),
     error: v.optional(v.string()),

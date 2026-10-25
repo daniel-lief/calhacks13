@@ -10,7 +10,7 @@ import ast
 import re
 
 ALLOWED_IMPORTS = {
-    "animai", "manimlib", "numpy", "math", "cmath", "random", "itertools", "functools",
+    "animai", "animlib", "numpy", "math", "cmath", "random", "itertools", "functools",
     "operator", "colorsys", "fractions", "collections", "string", "typing", "__future__",
 }
 BLOCKED_NAMES = {

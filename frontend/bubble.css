@@ -97,6 +97,27 @@ h1, h2, .brand, .enter, .closing, .tree-label, .pl-title {
 .voice-play { color: var(--accent); }
 .steps li.active { color: var(--accent); }
 .steps li.done { color: #66866b; }
+.job-ready {
+  display: flex; align-items: center; gap: 16px; width: 100%; margin-block: 10px 4px;
+  padding: 20px; border: 1px solid #cfe1cc; border-radius: 16px;
+  background: linear-gradient(120deg, #edf6e9, #f7faf1); text-align: left;
+  box-shadow: 0 5px 22px #66866b0c;
+  animation: job-ready-enter .65s cubic-bezier(.22,1,.36,1) backwards;
+}
+.job-ready[hidden] { display: none; }
+.job-ready h3 { margin: 0 0 5px; color: #42674b; font: 600 clamp(22px,1.7vw,28px)/1.15 "Fredoka", var(--font-sans); }
+.job-ready p { color: #617765; font-size: clamp(13px,1vw,16px); line-height: 1.5; }
+.job-ready-icon { display: grid; place-items: center; flex: none; width: 48px; height: 48px; border-radius: 50%; color: #42674b; background: #d8eccc; box-shadow: 0 0 0 6px #e4f0dd; animation: job-check-pop .7s cubic-bezier(.22,1,.36,1) backwards; }
+.job-ready-icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.job-ready-icon path { stroke-dasharray: 24; stroke-dashoffset: 0; animation: job-check-draw .45s .18s ease-out backwards; }
+.job.done .job-head #job-topic { color: #42674b; }
+.job.done .player { animation: job-ready-enter .65s .12s cubic-bezier(.22,1,.36,1) backwards; }
+@keyframes job-ready-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes job-check-pop { from { opacity: 0; transform: scale(.65); } 65% { opacity: 1; transform: scale(1.08); } to { transform: none; } }
+@keyframes job-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .job-ready, .job-ready-icon, .job-ready-icon path, .job.done .player { animation: none; }
+}
 .bar, .short-progress { background: var(--line); border-radius: 999px; }
 .bar div, .short-progress div { background: #ef7d99; border-radius: inherit; }
 .code-panel { border-color: var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }

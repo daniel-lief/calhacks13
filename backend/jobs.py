@@ -11,23 +11,13 @@ from pathlib import Path
 
 from . import attachments, config
 from .chapters import narration_segments, suggest_chapters
-<<<<<<< HEAD
-from .tagger import narration_text, suggest_tags
-from .voices import voice_name
-from .themes import theme_name
-from .research import ResearchResult, research_topic
-=======
 from .generator import GenerationError, SceneAuthor
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
+from .research import ResearchResult, research_topic
 from .renderer import extract_frames, make_thumbnail, render_scene, write_vtt
 from .tagger import narration_text, suggest_tags
 from .themes import theme_name
 from .validate import apply_scene_theme, check_scene, count_voiceovers, extract_tags, extract_title
 
-<<<<<<< HEAD
-ACTIVE_STATUSES = {"queued", "researching", "writing", "checking", "rendering", "reviewing"}
-MAX_LOG_ENTRIES = 300
-=======
 LOST_PDF = "The attached PDF was lost when the server restarted. Please try again."
 
 # Field names the pipeline uses -> names in the Convex videos table
@@ -39,7 +29,6 @@ UPLOADS = {
     "timings": ("timings.json", "application/json"),
     "code": ("scene.py", "text/x-python"),
 }
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 
 
 @dataclass
@@ -62,15 +51,9 @@ class Job:
     attempts: int = 0
     title: str | None = None
     tags: list[str] = field(default_factory=list)
-<<<<<<< HEAD
-    chapters: list[dict] = field(default_factory=list)   # [{start, title}], from the narration
-    public: bool = False        # shown in the feed once it's done
-    sample: bool = False        # pre-made post from backend/samples (read-only)
-    research: dict = field(default_factory=dict)  # status + source metadata, never full transcripts
-=======
     started: float = field(default_factory=time.time)
     pdf: bytes | None = None    # private context; only ever in memory, and never logged
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
+    research: dict = field(default_factory=dict)
 
     @property
     def dir(self) -> Path:
@@ -151,11 +134,8 @@ class JobManager:
         self._update(job, status="writing", stage="Planning the video script…", progress=0.08,
                      log=f"Planning an explanation of “{job.topic}”")
         self._update(job, log=f"Color theme: {theme_name(opts.theme)}")
-<<<<<<< HEAD
-        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme, research=research.context())
-=======
-        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme, pdf=job.pdf)
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
+        code = author.write(job.topic, opts.length, opts.extra, theme=opts.theme,
+                            research=research.context(), pdf=job.pdf)
         self._update(job, title=extract_title(code), tags=extract_tags(code), progress=0.25,
                      log=f"Scene written: {count_voiceovers(code)} narrated beats")
 

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Dot, FadeIn, LaggedStart, Line, Mobject, MoveAlongPath, Transform,
     Polygon, Rectangle, RoundedRectangle, ShowCreation, Succession, Triangle, VGroup, VMobject,
     UP, DOWN, LEFT, RIGHT, ORIGIN, PI,
@@ -271,7 +271,7 @@ class WorldMap(VGroup):
         path = VMobject(stroke_color=color or get_theme().accent, stroke_width=width)
         path.set_points_as_corners(path_pts)
         if dashed:
-            from manimlib import DashedVMobject
+            from animlib import DashedVMobject
             path = DashedVMobject(path, num_dashes=max(12, len(path_pts)))
         self.overlay.add(path)
         return path

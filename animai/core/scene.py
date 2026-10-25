@@ -6,11 +6,11 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 
-from manimlib import (
+from animlib import (
     Animation, FadeIn, FadeOut, GrowFromCenter, LaggedStart, Mobject, RoundedRectangle, Scene,
     Write, VGroup, UP, DOWN, IN, ORIGIN,
 )
-from manimlib.mobject.svg.string_mobject import StringMobject
+from animlib.mobject.svg.string_mobject import StringMobject
 
 from . import narration
 from .layout import fit, region, overlaps

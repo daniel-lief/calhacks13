@@ -22,6 +22,9 @@ class ThemeTest(unittest.TestCase):
         patcher = mock.patch.object(config, "DATA_DIR", self.tmp)
         patcher.start()
         self.addCleanup(patcher.stop)
+        research = mock.patch.object(jobs, "research_topic", return_value=jobs.ResearchResult("skipped", "Research disabled in unit tests."))
+        research.start()
+        self.addCleanup(research.stop)
 
     def test_the_theme_list_is_served(self):
         data = TestClient(api_module.app).get("/api/themes").json()
@@ -32,7 +35,7 @@ class ThemeTest(unittest.TestCase):
         seen = {}
 
         class Recording(FakeAuthor):
-            def write(self, topic, length, extra, theme="bubble", pdf=None):
+            def write(self, topic, length, extra, theme="bubble", pdf=None, research=None):
                 seen["theme"] = theme
                 return SCENE
 

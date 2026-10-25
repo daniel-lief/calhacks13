@@ -14,12 +14,7 @@ const EXAMPLES = [
   "The Silk Road",
 ];
 
-<<<<<<< HEAD
 const STEPS = ["researching", "writing", "checking", "rendering", "reviewing", "done"];
-const POLL_MS = 1500;
-=======
-const STEPS = ["writing", "checking", "rendering", "reviewing", "done"];
->>>>>>> d3c55572a0f9208d969fcd767d476cd92c738b32
 
 const el = {
   form: $("#form"), topic: $("#topic"), submit: $("#submit"), submitBottom: $("#submit-bottom"), examples: $("#examples"),
@@ -27,10 +22,8 @@ const el = {
   pdfInput: $("#pdf-input"), pdfChosen: $("#pdf-chosen"), pdfRemove: $("#pdf-remove"), pdfError: $("#pdf-error"),
   job: $("#job"), jobTopic: $("#job-topic"), jobTitle: $("#job-title"), elapsed: $("#job-elapsed"),
   steps: $("#steps"), progressWrap: $("#progress-wrap"), progressBar: $("#progress-bar"), stage: $("#job-stage"),
-  player: $("#player"), video: $("#video"), download: $("#download"), togglePublic: $("#toggle-public"),
-  toggleCode: $("#toggle-code"), codePanel: $("#code-panel"), code: $("#code"), copyCode: $("#copy-code"),
-  newVideo: $("#new-video"), failure: $("#failure"), failureMsg: $("#failure-msg"), retry: $("#retry"),
-  failureNew: $("#failure-new"), log: $("#log"),
+  player: $("#player"), video: $("#video"), ready: $("#job-ready"),
+  failure: $("#failure"), failureMsg: $("#failure-msg"), retry: $("#retry"), log: $("#log"),
   jobTags: $("#job-tags"), tagList: $("#job-tag-list"), editTags: $("#edit-tags"),
   tagForm: $("#tag-form"), tagInput: $("#tag-input"), tagCancel: $("#tag-cancel"),
   research: $("#job-research"), researchMessage: $("#research-message"), researchSources: $("#research-sources"),
@@ -44,7 +37,6 @@ let queuePosition = 0;
 let elapsedTimer = null;
 let renderedLogCount = 0;
 let loadedVideoUrl = null;
-let codeLoadedFor = null;
 
 // --- Composer ----------------------------------------------------------------
 
@@ -269,10 +261,9 @@ function showJob(id) {
   stopPreview();
   renderedLogCount = 0;
   loadedVideoUrl = null;
-  codeLoadedFor = null;
   el.log.innerHTML = "";
-  el.codePanel.hidden = true;
-  el.toggleCode.textContent = "View ManimGL code";
+  el.player.hidden = true;
+  el.ready.hidden = true;
   el.video.removeAttribute("src");
   el.video.removeAttribute("poster");
   el.video.innerHTML = "";
@@ -352,8 +343,19 @@ function renderJob(job) {
   tick();
   if (active) elapsedTimer = setInterval(tick, 1000);
 
-  // Player: show the first cut as soon as it exists, swap in the polished cut later
-  if (job.video_url && job.video_url !== loadedVideoUrl) {
+  // First-cut files can arrive during review. Attach media only after the final result.
+  const ready = job.status === "done" && !!job.video_url;
+  el.ready.hidden = !ready;
+  el.player.hidden = !ready;
+  if (!ready && loadedVideoUrl) {
+    el.video.pause();
+    el.video.removeAttribute("src");
+    el.video.removeAttribute("poster");
+    el.video.innerHTML = "";
+    el.video.load();
+    loadedVideoUrl = null;
+  }
+  if (ready && job.video_url !== loadedVideoUrl) {
     loadedVideoUrl = job.video_url;
     el.video.innerHTML = job.captions_url
       ? `<track kind="captions" srclang="en" label="English" src="${job.captions_url}" default>`
@@ -362,15 +364,7 @@ function renderJob(job) {
     el.video.src = job.video_url;
     jobPlayer.setTitle(job.title || job.topic);
     jobPlayer.setChapters(job.chapters);
-    el.download.href = job.video_url;
-    el.download.download = `${slug(job.title || job.topic)}.mp4`;
-    codeLoadedFor = null;
-    if (!el.codePanel.hidden) loadCode();
   }
-  el.player.hidden = !job.video_url;
-  el.newVideo.hidden = active;
-  el.togglePublic.hidden = !job.ownedByMe;
-  el.togglePublic.textContent = job.public ? "Make private" : "Make public";
 
   // Failure
   el.failure.hidden = job.status !== "failed";
@@ -397,41 +391,6 @@ function renderLogs(logs) {
   if (logs.length > renderedLogCount) el.log.scrollTop = el.log.scrollHeight;
   renderedLogCount = logs.length;
 }
-
-async function loadCode() {
-  if (!current?.code_url || codeLoadedFor === current.video_url) return;
-  try {
-    const res = await fetch(current.code_url);
-    const text = await res.text();
-    el.code.innerHTML = highlightPython(text);
-    el.code.dataset.raw = text;
-    codeLoadedFor = current.video_url;
-  } catch {
-    el.code.textContent = "Couldn't load the code.";
-  }
-}
-
-el.toggleCode.addEventListener("click", async () => {
-  const show = el.codePanel.hidden;
-  el.codePanel.hidden = !show;
-  el.toggleCode.textContent = show ? "Hide code" : "View ManimGL code";
-  if (show) await loadCode();
-});
-
-el.copyCode.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(el.code.dataset.raw || "");
-    el.copyCode.textContent = "Copied";
-    setTimeout(() => (el.copyCode.textContent = "Copy"), 1500);
-  } catch { /* clipboard unavailable */ }
-});
-
-el.togglePublic.addEventListener("click", async () => {
-  if (!current) return;
-  try {
-    await call("mutation", "videos:setPublic", { id: current.id, public: !current.public });  // live query re-renders
-  } catch (err) { alert(err.message); }
-});
 
 // --- Tags ----------------------------------------------------------------------
 
@@ -494,13 +453,6 @@ el.tagForm.addEventListener("submit", async (e) => {
     closeTagEditor();
   } catch (err) { alert(`Couldn't save tags: ${err.message}`); }
 });
-
-function makeAnother() {
-  el.topic.value = "";
-  location.hash = "#/create";
-}
-el.newVideo.addEventListener("click", makeAnother);
-el.failureNew.addEventListener("click", makeAnother);
 
 el.retry.addEventListener("click", () => {
   if (!current) return;

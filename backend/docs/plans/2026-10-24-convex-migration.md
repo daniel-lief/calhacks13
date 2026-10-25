@@ -24,7 +24,7 @@
 
 ## Global Constraints
 
-- Only modify files under `frontend/` and `backend/`. Do not touch `animai/`, `manimlib/`, `gallery/`, `requirements.txt` or root files. No new Python packages.
+- Only modify files under `frontend/` and `backend/`. Do not touch `animai/`, `animlib/`, `gallery/`, `requirements.txt` or root files. No new Python packages.
 - Convex functions follow `backend/convex/_generated/ai/guidelines.md` (read it before Task 1): argument validators on every function, `internal*` for private functions, identity derived server-side with `getAuthUserId`, never taken from arguments.
 - `WORKER_SECRET` is a Convex environment variable (`npx convex env set`) and a line in `backend/.env.local`. It never goes in git, logs or API responses.
 - `backend/.env.local` holds `CONVEX_URL`, `CONVEX_DEPLOYMENT`, `WORKER_SECRET`. `backend/config.py` loads it in addition to the root `.env`.

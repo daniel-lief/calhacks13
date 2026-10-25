@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from manimlib import DOWN, RIGHT
+from animlib import DOWN, RIGHT
 
 __all__ = ["layered_positions", "tree_positions"]
 

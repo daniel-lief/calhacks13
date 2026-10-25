@@ -18,7 +18,7 @@ from pathlib import Path
 from animai import fonts, tools
 from animai.themes import THEMES
 
-ROOT = Path(__file__).resolve().parent.parent  # Folder holding animai/ and manimlib/
+ROOT = Path(__file__).resolve().parent.parent  # Folder holding animai/ and animlib/
 QUALITY_FLAGS = {"low": "-l", "medium": "-m", "high": "--hd", "4k": "--uhd"}
 THEME_RE = re.compile(r'^THEME\s*=\s*["\'](\w+)["\']', re.MULTILINE)
 CACHE_DIR = Path(os.getenv("ANIMAI_CACHE", Path.home() / ".animai"))
@@ -57,7 +57,7 @@ def render_command(scene_path: Path, scene_name: str, out_dir: Path, *, quality:
     theme = theme or detect_theme(scene_path)
     cfg = write_engine_config(out_dir / "engine_config.yml", theme)
 
-    cmd = [sys.executable, "-m", "manimlib", str(scene_path), scene_name,
+    cmd = [sys.executable, "-m", "animlib", str(scene_path), scene_name,
            "-w", QUALITY_FLAGS.get(quality, "-m"), "--video_dir", str(out_dir),
            "--config_file", str(cfg)]
     if file_name:

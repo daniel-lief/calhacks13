@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import Mobject, VectorizedPoint, ORIGIN, RIGHT
+from animlib import Mobject, VectorizedPoint, ORIGIN, RIGHT
 
 __all__ = ["ScaleTracker"]
 

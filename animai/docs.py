@@ -60,8 +60,8 @@ def _short(value) -> str:
         return f"{value:g}"
     if hasattr(value, "shape"):  # numpy direction constants
         for const in ("UP", "DOWN", "LEFT", "RIGHT", "ORIGIN", "UR", "UL", "DR", "DL"):
-            import manimlib
-            if hasattr(manimlib, const) and (getattr(manimlib, const) == value).all():
+            import animlib
+            if hasattr(animlib, const) and (getattr(animlib, const) == value).all():
                 return const
         return "array"
     text = repr(value)

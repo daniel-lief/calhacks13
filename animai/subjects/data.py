@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, AnnularSector, Axes, Dot, FadeIn, GrowFromEdge, LaggedStart,
     Line, Mobject, Rectangle, ShowCreation, Succession, Transform, UpdateFromAlphaFunc,
     RoundedRectangle, VGroup, VMobject, VectorizedPoint, Write, UP, DOWN, LEFT, RIGHT, DR, ORIGIN,

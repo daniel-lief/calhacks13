@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from manimlib import (
+from animlib import (
     Animation, AnimationGroup, Arrow, Circle, Code, Dot, FadeIn, LaggedStart, Mobject,
     RoundedRectangle, Text, Transform, VGroup, UP, DOWN, LEFT, RIGHT, UR, ORIGIN,
 )
